@@ -50,6 +50,7 @@ INSERT_GENTCONF
 // -- Architecture family-specific headers -------------------------------------
 //
 
+
 // -- x86_64 families --
 
 #ifdef BLIS_FAMILY_INTEL64
@@ -119,6 +120,11 @@ INSERT_GENTCONF
 #endif
 
 // -- ARM architectures --
+
+// ARM-SME
+#ifdef BLIS_FAMILY_M4SME_P
+#include "bli_family_m4sme_p.h"
+#endif
 
 // ARM-SVE
 #ifdef BLIS_FAMILY_ARMSVE
@@ -241,6 +247,9 @@ INSERT_GENTCONF
 
 // -- ARM architectures --
 
+#ifdef BLIS_KERNELS_ARMSME
+#include "bli_kernels_armsme.h"
+#endif
 #ifdef BLIS_KERNELS_ARMSVE
 #include "bli_kernels_armsve.h"
 #endif
