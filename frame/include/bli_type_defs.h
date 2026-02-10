@@ -959,6 +959,7 @@ typedef enum arch_e
 	// NOTE: The C language standard guarantees that the first enum value
 	// starts at 0.
 
+	
 	// Intel
 	BLIS_ARCH_SKX,
 	BLIS_ARCH_KNL,
@@ -975,6 +976,9 @@ typedef enum arch_e
 	BLIS_ARCH_STEAMROLLER,
 	BLIS_ARCH_PILEDRIVER,
 	BLIS_ARCH_BULLDOZER,
+
+	// ARM-SME
+	BLIS_ARCH_M4SME_P,
 
 	// ARM-SVE
 	BLIS_ARCH_ARMSVE,
