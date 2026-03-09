@@ -979,6 +979,7 @@ typedef enum arch_e
 
 	// ARM-SME
 	BLIS_ARCH_M4SME_P,
+	BLIS_ARCH_M4SME_E,
 
 	// ARM-SVE
 	BLIS_ARCH_ARMSVE,
