@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <arm_sme.h>
 #include "blis.h"
 
-__arm_new( "za" ) __arm_locally_streaming void bli_sgemm_m4sme_int_2SVLx2SVL
+__arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_int_2SVLx2SVL
 	(
 			  dim_t      m,
 			  dim_t      n,
