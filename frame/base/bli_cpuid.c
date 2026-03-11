@@ -1020,8 +1020,8 @@ int vpu_count( void )
 #define HWCAP2_SVE2(1 << 1)
 et al
 ) */
-#ifndef HWCAP2_SME2
-#define HWCAP2_SME2 (1UL << 37)
+#ifndef HWCAP2_SME
+#define HWCAP2_SME (1 << 23)
 #endif
 
 #endif //__linux__
@@ -1065,8 +1065,8 @@ static uint32_t get_coretype
 	has_sve = getauxval( AT_HWCAP ) & HWCAP_SVE;
 	if (has_sve)
 		*features |= FEATURE_SVE;
-	if (getauxval( AT_HWCAP2 ) & HWCAP2_SME2)
-        *features |= FEATURE_SME2; 
+	if (getauxval( AT_HWCAP2 ) & HWCAP2_SME)
+        *features |= FEATURE_SME; 
 #endif //__linux__
 
 #ifdef __APPLE__
@@ -1075,11 +1075,11 @@ static uint32_t get_coretype
 #include <sys/sysctl.h>
 	implementer = 0x61; //Apple
 	part        = 0x023; //Firestorm
-	int sme2_supported = 0;
-size_t len = sizeof(sme2_supported);
-if (sysctlbyname("hw.optional.arm.FEAT_SME2", &sme2_supported, &len, NULL, 0) == 0) {
-    if (sme2_supported) {
-        *features |= FEATURE_SME2;
+	int sme_supported = 0;
+size_t len = sizeof(sme_supported);
+if (sysctlbyname("hw.optional.arm.FEAT_SME", &sme_supported, &len, NULL, 0) == 0) {
+    if (sme_supported) {
+        *features |= FEATURE_SME;
     }
 }
 #endif //__APPLE__
@@ -1153,7 +1153,7 @@ if (sysctlbyname("hw.optional.arm.FEAT_SME2", &sme2_supported, &len, NULL, 0) ==
 #define APPLE_CPU_PART_AVALANCHE_MAX 0x039
 
 #ifdef BLIS_CONFIG_M4SME_P
-    if (*features & FEATURE_SME2)
+    if (*features & FEATURE_SME)
         return BLIS_ARCH_M4SME_P;
 #endif
 

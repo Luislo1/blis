@@ -38,103 +38,100 @@
 
 // MACROS FOR FALLTHROUGH LOGIC
 
-// 1. Core Read & Shuffle Logic
-#define READ_AND_SHUFFLE_VG4_1( tcol, zq0_, zq2_ )                          \
-	svfloat32x4_t zq0 = svread_ver_za32_f32_vg4( 0, tcol );                 \
-	svfloat32x4_t zq2 = svread_ver_za32_f32_vg4( 2, tcol );                 \
-	zq0_ = svcreate4( svget4( zq0, 0 ), svget4( zq2, 0 ), svget4( zq0, 1 ), \
-		svget4( zq2, 1 ) );                                                 \
-	zq2_ = svcreate4( svget4( zq0, 2 ), svget4( zq2, 2 ), svget4( zq0, 3 ), \
-		svget4( zq2, 3 ) );
-
-#define READ_AND_SHUFFLE_VG4_2( tcol, zq1_, zq3_ )                          \
-	svfloat32x4_t zq1 = svread_ver_za32_f32_vg4( 1, tcol );                 \
-	svfloat32x4_t zq3 = svread_ver_za32_f32_vg4( 3, tcol );                 \
-	zq1_ = svcreate4( svget4( zq1, 0 ), svget4( zq3, 0 ), svget4( zq1, 1 ), \
-		svget4( zq3, 1 ) );                                                 \
-	zq3_ = svcreate4( svget4( zq1, 2 ), svget4( zq3, 2 ), svget4( zq1, 3 ), \
-		svget4( zq3, 3 ) );
-
-#define READ_AND_SHUFFLE_VG2_1( tcol, zq0_ )                                \
-	svfloat32x2_t zq0 = svread_ver_za32_f32_vg2( 0, tcol );                 \
-	svfloat32x2_t zq2 = svread_ver_za32_f32_vg2( 2, tcol );                 \
-	zq0_ = svcreate4( svget2( zq0, 0 ), svget2( zq2, 0 ), svget2( zq0, 1 ), \
-		svget2( zq2, 1 ) );
-
-#define READ_AND_SHUFFLE_VG2_2( tcol, zq1_ )                                \
-	svfloat32x2_t zq1 = svread_ver_za32_f32_vg2( 1, tcol );                 \
-	svfloat32x2_t zq3 = svread_ver_za32_f32_vg2( 3, tcol );                 \
-	zq1_ = svcreate4( svget2( zq1, 0 ), svget2( zq3, 0 ), svget2( zq1, 1 ), \
-		svget2( zq3, 1 ) );
-
-#define READ_AND_SHUFFLE_1( tcol, zq0_ )                                \
-	svfloat32_t zq0 = svread_ver_za32_m( zq0, svptrue_b32(), 0, tcol ); \
-	svfloat32_t zq2 = svread_ver_za32_m( zq2, svptrue_b32(), 2, tcol ); \
-	zq0_ = svcreate2( zq0, zq2 );
-
-#define READ_AND_SHUFFLE_2( tcol, zq1_ )                                \
-	svfloat32_t zq1 = svread_ver_za32_m( zq1, svptrue_b32(), 1, tcol ); \
-	svfloat32_t zq3 = svread_ver_za32_m( zq3, svptrue_b32(), 3, tcol ); \
-	zq1_ = svcreate2( zq1, zq3 );
-
-// 2. Execution Blocks combined with storing
+// 1. Execution Blocks combined with storing
 
 // [FULL] Stores 8 Vectors
 #define OP_VG4_1( tcol, p_ )                    \
 	{                                           \
-		svcount_t p0 = svptrue_c32();           \
-		svfloat32x4_t z0, z1;                   \
-		READ_AND_SHUFFLE_VG4_1( tcol, z0, z1 ); \
-		svst1( p0, &p_[0], z0 );                \
-		svst1( p0, &p_[4 * SVL], z1 );          \
+		svbool_t p0 = svptrue_b32();            \
+		svfloat32_t z0_0 = svread_ver_za32_m( svundef_f32(), p0, 0, tcol + 0 ); \
+		svfloat32_t z0_1 = svread_ver_za32_m( svundef_f32(), p0, 2, tcol + 0 ); \
+		svfloat32_t z0_2 = svread_ver_za32_m( svundef_f32(), p0, 0, tcol + 1 ); \
+		svfloat32_t z0_3 = svread_ver_za32_m( svundef_f32(), p0, 2, tcol + 1 ); \
+		svfloat32_t z1_0 = svread_ver_za32_m( svundef_f32(), p0, 0, tcol + 2 ); \
+		svfloat32_t z1_1 = svread_ver_za32_m( svundef_f32(), p0, 2, tcol + 2 ); \
+		svfloat32_t z1_2 = svread_ver_za32_m( svundef_f32(), p0, 0, tcol + 3 ); \
+		svfloat32_t z1_3 = svread_ver_za32_m( svundef_f32(), p0, 2, tcol + 3 ); \
+		svst1_f32( p0, &p_[0], z0_0 );          \
+		svst1_f32( p0, &p_[1 * SVL], z0_1 );    \
+		svst1_f32( p0, &p_[2 * SVL], z0_2 );    \
+		svst1_f32( p0, &p_[3 * SVL], z0_3 );    \
+		svst1_f32( p0, &p_[4 * SVL], z1_0 );    \
+		svst1_f32( p0, &p_[5 * SVL], z1_1 );    \
+		svst1_f32( p0, &p_[6 * SVL], z1_2 );    \
+		svst1_f32( p0, &p_[7 * SVL], z1_3 );    \
 		p_ += ( 8 * SVL );                      \
 	}
 
 #define OP_VG4_2( tcol, p_ )                    \
 	{                                           \
-		svcount_t p0 = svptrue_c32();           \
-		svfloat32x4_t z0, z1;                   \
-		READ_AND_SHUFFLE_VG4_2( tcol, z0, z1 ); \
-		svst1( p0, &p_[0], z0 );                \
-		svst1( p0, &p_[4 * SVL], z1 );          \
+		svbool_t p0 = svptrue_b32();            \
+		svfloat32_t z1_0 = svread_ver_za32_m( svundef_f32(), p0, 1, tcol + 0 ); \
+		svfloat32_t z1_1 = svread_ver_za32_m( svundef_f32(), p0, 3, tcol + 0 ); \
+		svfloat32_t z1_2 = svread_ver_za32_m( svundef_f32(), p0, 1, tcol + 1 ); \
+		svfloat32_t z1_3 = svread_ver_za32_m( svundef_f32(), p0, 3, tcol + 1 ); \
+		svfloat32_t z3_0 = svread_ver_za32_m( svundef_f32(), p0, 1, tcol + 2 ); \
+		svfloat32_t z3_1 = svread_ver_za32_m( svundef_f32(), p0, 3, tcol + 2 ); \
+		svfloat32_t z3_2 = svread_ver_za32_m( svundef_f32(), p0, 1, tcol + 3 ); \
+		svfloat32_t z3_3 = svread_ver_za32_m( svundef_f32(), p0, 3, tcol + 3 ); \
+		svst1_f32( p0, &p_[0], z1_0 );          \
+		svst1_f32( p0, &p_[1 * SVL], z1_1 );    \
+		svst1_f32( p0, &p_[2 * SVL], z1_2 );    \
+		svst1_f32( p0, &p_[3 * SVL], z1_3 );    \
+		svst1_f32( p0, &p_[4 * SVL], z3_0 );    \
+		svst1_f32( p0, &p_[5 * SVL], z3_1 );    \
+		svst1_f32( p0, &p_[6 * SVL], z3_2 );    \
+		svst1_f32( p0, &p_[7 * SVL], z3_3 );    \
 		p_ += ( 8 * SVL );                      \
 	}
 
-// [TAIL VG2] Stores 4 Vectors
+//[TAIL VG2] Stores 4 Vectors
 #define OP_TAIL_VG2_1( tcol, p_ )           \
 	{                                       \
-		svcount_t p0 = svptrue_c32();       \
-		svfloat32x4_t z0;                   \
-		READ_AND_SHUFFLE_VG2_1( tcol, z0 ); \
-		svst1( p0, &p_[0], z0 );            \
+		svbool_t p0 = svptrue_b32();        \
+		svfloat32_t z0_0 = svread_ver_za32_m( svundef_f32(), p0, 0, tcol + 0 ); \
+		svfloat32_t z0_1 = svread_ver_za32_m( svundef_f32(), p0, 2, tcol + 0 ); \
+		svfloat32_t z0_2 = svread_ver_za32_m( svundef_f32(), p0, 0, tcol + 1 ); \
+		svfloat32_t z0_3 = svread_ver_za32_m( svundef_f32(), p0, 2, tcol + 1 ); \
+		svst1_f32( p0, &p_[0], z0_0 );      \
+		svst1_f32( p0, &p_[1 * SVL], z0_1 );\
+		svst1_f32( p0, &p_[2 * SVL], z0_2 );\
+		svst1_f32( p0, &p_[3 * SVL], z0_3 );\
 		p_ += ( 4 * SVL );                  \
 	}
 
 #define OP_TAIL_VG2_2( tcol, p_ )           \
 	{                                       \
-		svcount_t p0 = svptrue_c32();       \
-		svfloat32x4_t z0;                   \
-		READ_AND_SHUFFLE_VG2_2( tcol, z0 ); \
-		svst1( p0, &p_[0], z0 );            \
+		svbool_t p0 = svptrue_b32();        \
+		svfloat32_t z1_0 = svread_ver_za32_m( svundef_f32(), p0, 1, tcol + 0 ); \
+		svfloat32_t z1_1 = svread_ver_za32_m( svundef_f32(), p0, 3, tcol + 0 ); \
+		svfloat32_t z1_2 = svread_ver_za32_m( svundef_f32(), p0, 1, tcol + 1 ); \
+		svfloat32_t z1_3 = svread_ver_za32_m( svundef_f32(), p0, 3, tcol + 1 ); \
+		svst1_f32( p0, &p_[0], z1_0 );      \
+		svst1_f32( p0, &p_[1 * SVL], z1_1 );\
+		svst1_f32( p0, &p_[2 * SVL], z1_2 );\
+		svst1_f32( p0, &p_[3 * SVL], z1_3 );\
 		p_ += ( 4 * SVL );                  \
 	}
 
 // [TAIL] Stores 2 Vectors
 #define OP_TAIL_1( tcol, p_ )           \
 	{                                   \
-		svcount_t p0 = svptrue_c32();   \
-		svfloat32x2_t z0;               \
-		READ_AND_SHUFFLE_1( tcol, z0 ); \
-		svst1( p0, &p_[0], z0 );        \
+		svbool_t p0 = svptrue_b32();    \
+		svfloat32_t z0 = svread_ver_za32_m( svundef_f32(), p0, 0, tcol ); \
+		svfloat32_t z2 = svread_ver_za32_m( svundef_f32(), p0, 2, tcol ); \
+		svst1_f32( p0, &p_[0], z0 );    \
+		svst1_f32( p0, &p_[SVL], z2 );  \
 		p_ += ( 2 * SVL );              \
 	}
 
 #define OP_TAIL_2( tcol, p_ )           \
 	{                                   \
-		svcount_t p0 = svptrue_c32();   \
-		svfloat32x2_t z0;               \
-		READ_AND_SHUFFLE_2( tcol, z0 ); \
-		svst1( p0, &p_[0], z0 );        \
+		svbool_t p0 = svptrue_b32();    \
+		svfloat32_t z1 = svread_ver_za32_m( svundef_f32(), p0, 1, tcol ); \
+		svfloat32_t z3 = svread_ver_za32_m( svundef_f32(), p0, 3, tcol ); \
+		svst1_f32( p0, &p_[0], z1 );    \
+		svst1_f32( p0, &p_[SVL], z3 );  \
 		p_ += ( 2 * SVL );              \
 	}
 
@@ -165,8 +162,6 @@ __arm_new( "za" ) __arm_locally_streaming void bli_spackm_armsme_int_2SVLx2SVL
 
 	uint64_t SVL = svcntsw();
 
-	svfloat32x2_t tmp;
-
 	const float* restrict alpha1 = a;
 	float* restrict pi1 = p;
 
@@ -187,9 +182,8 @@ __arm_new( "za" ) __arm_locally_streaming void bli_spackm_armsme_int_2SVLx2SVL
 					svfloat32_t z0 = svld1_f32( p0, alpha1 + 0 * SVL );
 					svfloat32_t z1 = svld1_f32( p1, alpha1 + 1 * SVL );
 
-					tmp = svcreate2( z0, z1 );
-
-					svst1_f32_x2( svptrue_c32(), pi1, tmp );
+					svst1_f32( svptrue_b32(), pi1, z0 );
+					svst1_f32( svptrue_b32(), pi1 + SVL, z1 );
 
 					alpha1 += lda;
 					pi1 += ldp;
@@ -215,7 +209,7 @@ __arm_new( "za" ) __arm_locally_streaming void bli_spackm_armsme_int_2SVLx2SVL
 						svbool_t pc1 = svwhilelt_b32( (int64_t)( 1 * SVL ),
 							valid_cols );
 
-						svcount_t p_all = svptrue_c32();
+						svbool_t p_all = svptrue_b32();
 
 						if ( valid_cols >= 2 * SVL && valid_rows >= 2 * SVL )
 						{
@@ -226,47 +220,47 @@ __arm_new( "za" ) __arm_locally_streaming void bli_spackm_armsme_int_2SVLx2SVL
 									col;
 
 								// Group 1 (Tiles 0 and 1)
-								svfloat32x2_t zp0 = svld1_f32_x2( p_all,
-									&a_[tile_UL_corner + 0 * inca] );
-								svfloat32x2_t zp1 = svld1_f32_x2( p_all,
-									&a_[tile_UL_corner + 1 * inca] );
-								svfloat32x2_t zp2 = svld1_f32_x2( p_all,
-									&a_[tile_UL_corner + 2 * inca] );
-								svfloat32x2_t zp3 = svld1_f32_x2( p_all,
-									&a_[tile_UL_corner + 3 * inca] );
+
+								svfloat32_t zp0 = svld1_f32(p_all, &a_[tile_UL_corner + 0 * inca]);
+								svfloat32_t zp01 = svld1_f32(p_all, &a_[tile_UL_corner + 0 * inca + SVL]);
+								svfloat32_t zp1 = svld1_f32(p_all, &a_[tile_UL_corner + 1 * inca]);
+								svfloat32_t zp11 = svld1_f32(p_all, &a_[tile_UL_corner + 1 * inca + SVL]);
+								svfloat32_t zp2 = svld1_f32(p_all, &a_[tile_UL_corner + 2 * inca]);
+								svfloat32_t zp21 = svld1_f32(p_all, &a_[tile_UL_corner + 2 * inca + SVL]);
+								svfloat32_t zp3 = svld1_f32(p_all, &a_[tile_UL_corner + 3 * inca]);
+								svfloat32_t zp31 = svld1_f32(p_all, &a_[tile_UL_corner + 3 * inca +  SVL]);
 
 								const uint64_t tile_BL_corner = tile_UL_corner +
 									inca * SVL;
 
 								// Group 1 (Tiles 2 and 3)
-								svfloat32x2_t zp4 = svld1_f32_x2( p_all,
-									&a_[tile_BL_corner + 0 * inca] );
-								svfloat32x2_t zp5 = svld1_f32_x2( p_all,
-									&a_[tile_BL_corner + 1 * inca] );
-								svfloat32x2_t zp6 = svld1_f32_x2( p_all,
-									&a_[tile_BL_corner + 2 * inca] );
-								svfloat32x2_t zp7 = svld1_f32_x2( p_all,
-									&a_[tile_BL_corner + 3 * inca] );
 
-								// Shuffle into x4 tuples
-								svfloat32x4_t zq0 = svcreate4( svget2( zp0, 0 ),
-									svget2( zp1, 0 ), svget2( zp2, 0 ),
-									svget2( zp3, 0 ) );
-								svfloat32x4_t zq1 = svcreate4( svget2( zp0, 1 ),
-									svget2( zp1, 1 ), svget2( zp2, 1 ),
-									svget2( zp3, 1 ) );
-								svfloat32x4_t zq2 = svcreate4( svget2( zp4, 0 ),
-									svget2( zp5, 0 ), svget2( zp6, 0 ),
-									svget2( zp7, 0 ) );
-								svfloat32x4_t zq3 = svcreate4( svget2( zp4, 1 ),
-									svget2( zp5, 1 ), svget2( zp6, 1 ),
-									svget2( zp7, 1 ) );
+								svfloat32_t zp4 = svld1_f32(p_all, &a_[tile_BL_corner + 0 * inca]);
+								svfloat32_t zp41 = svld1_f32(p_all, &a_[tile_BL_corner + 0 * inca + SVL]);
+								svfloat32_t zp5 = svld1_f32(p_all, &a_[tile_BL_corner + 1 * inca]);
+								svfloat32_t zp51 = svld1_f32(p_all, &a_[tile_BL_corner + 1 * inca + SVL]);
+								svfloat32_t zp6 = svld1_f32(p_all, &a_[tile_BL_corner + 2 * inca]);
+								svfloat32_t zp61 = svld1_f32(p_all, &a_[tile_BL_corner + 2 * inca + SVL]);
+								svfloat32_t zp7 = svld1_f32(p_all, &a_[tile_BL_corner + 3 * inca]);
+								svfloat32_t zp71 = svld1_f32(p_all, &a_[tile_BL_corner + 3 * inca +  SVL]);
 
 								// ZA writes
-								svwrite_hor_za32_f32_vg4( 0, trow, zq0 );
-								svwrite_hor_za32_f32_vg4( 1, trow, zq1 );
-								svwrite_hor_za32_f32_vg4( 2, trow, zq2 );
-								svwrite_hor_za32_f32_vg4( 3, trow, zq3 );
+								svwrite_hor_za32_f32_m(0, trow, p_all, zp0);
+								svwrite_hor_za32_f32_m(0, trow + 1, p_all, zp1);
+								svwrite_hor_za32_f32_m(0, trow + 2, p_all, zp2);
+								svwrite_hor_za32_f32_m(0, trow + 3, p_all, zp3);
+								svwrite_hor_za32_f32_m(1, trow, p_all, zp01);
+								svwrite_hor_za32_f32_m(1, trow + 1, p_all, zp11);
+								svwrite_hor_za32_f32_m(1, trow + 2, p_all, zp21);
+								svwrite_hor_za32_f32_m(1, trow + 3, p_all, zp31);
+								svwrite_hor_za32_f32_m(2, trow, p_all, zp4);
+								svwrite_hor_za32_f32_m(2, trow + 1, p_all, zp5);
+								svwrite_hor_za32_f32_m(2, trow + 2, p_all, zp6);
+								svwrite_hor_za32_f32_m(2, trow + 3, p_all, zp7);
+								svwrite_hor_za32_f32_m(3, trow, p_all, zp41);
+								svwrite_hor_za32_f32_m(3, trow + 1, p_all, zp51);
+								svwrite_hor_za32_f32_m(3, trow + 2, p_all, zp61);
+								svwrite_hor_za32_f32_m(3, trow + 3, p_all, zp71);
 							}
 						}
 						else
@@ -281,14 +275,16 @@ __arm_new( "za" ) __arm_locally_streaming void bli_spackm_armsme_int_2SVLx2SVL
 
 								// 1. Create undefined default vectors
 								svfloat32_t undef_v = svundef_f32();
-								svfloat32x2_t undef_x2 = svcreate2( undef_v,
-									undef_v );
 
 								// 2. Default all load arrays to empty
-								svfloat32x2_t zp0 = undef_x2, zp1 = undef_x2,
-											  zp2 = undef_x2, zp3 = undef_x2;
-								svfloat32x2_t zp4 = undef_x2, zp5 = undef_x2,
-											  zp6 = undef_x2, zp7 = undef_x2;
+								svfloat32_t v0_0 = undef_v, v0_1 = undef_v;
+								svfloat32_t v1_0 = undef_v, v1_1 = undef_v;
+								svfloat32_t v2_0 = undef_v, v2_1 = undef_v;
+								svfloat32_t v3_0 = undef_v, v3_1 = undef_v;
+								svfloat32_t v4_0 = undef_v, v4_1 = undef_v;
+								svfloat32_t v5_0 = undef_v, v5_1 = undef_v;
+								svfloat32_t v6_0 = undef_v, v6_1 = undef_v;
+								svfloat32_t v7_0 = undef_v, v7_1 = undef_v;
 
 								// 3. Calculate rows left independently for the
 								// top and bottom block
@@ -298,83 +294,92 @@ __arm_new( "za" ) __arm_locally_streaming void bli_spackm_armsme_int_2SVLx2SVL
 
 								// 4. Load top rows (writes to tiles 0,1)
 								if ( rows_left_top > 0 )
-									zp0 = svcreate2(
-										svld1_f32( pc0,
-											&a_[tile_UL_corner + 0 * inca] ),
-										svld1_f32( pc1,
-											&a_[tile_UL_corner + 0 * inca +
-												SVL] ) );
+								{
+									v0_0 = svld1_f32( pc0,
+										&a_[tile_UL_corner + 0 * inca] );
+									v0_1 = svld1_f32( pc1,
+										&a_[tile_UL_corner + 0 * inca +
+											SVL] );
+								}
 								if ( rows_left_top > 1 )
-									zp1 = svcreate2(
-										svld1_f32( pc0,
-											&a_[tile_UL_corner + 1 * inca] ),
-										svld1_f32( pc1,
-											&a_[tile_UL_corner + 1 * inca +
-												SVL] ) );
+								{
+									v1_0 = svld1_f32( pc0,
+										&a_[tile_UL_corner + 1 * inca] );
+									v1_1 = svld1_f32( pc1,
+										&a_[tile_UL_corner + 1 * inca +
+											SVL] );
+								}
 								if ( rows_left_top > 2 )
-									zp2 = svcreate2(
-										svld1_f32( pc0,
-											&a_[tile_UL_corner + 2 * inca] ),
-										svld1_f32( pc1,
-											&a_[tile_UL_corner + 2 * inca +
-												SVL] ) );
+								{
+									v2_0 = svld1_f32( pc0,
+										&a_[tile_UL_corner + 2 * inca] );
+									v2_1 = svld1_f32( pc1,
+										&a_[tile_UL_corner + 2 * inca +
+											SVL] );
+								}
 								if ( rows_left_top > 3 )
-									zp3 = svcreate2(
-										svld1_f32( pc0,
-											&a_[tile_UL_corner + 3 * inca] ),
-										svld1_f32( pc1,
-											&a_[tile_UL_corner + 3 * inca +
-												SVL] ) );
+								{
+									v3_0 = svld1_f32( pc0,
+										&a_[tile_UL_corner + 3 * inca] );
+									v3_1 = svld1_f32( pc1,
+										&a_[tile_UL_corner + 3 * inca +
+											SVL] );
+								}
 
 								// 5. Load bottom rows (writes to tiles 2, 3)
 								if ( rows_left_bot > 0 )
-									zp4 = svcreate2(
-										svld1_f32( pc0,
-											&a_[tile_BL_corner + 0 * inca] ),
-										svld1_f32( pc1,
-											&a_[tile_BL_corner + 0 * inca +
-												SVL] ) );
+								{
+									v4_0 = svld1_f32( pc0,
+										&a_[tile_BL_corner + 0 * inca] );
+									v4_1 = svld1_f32( pc1,
+										&a_[tile_BL_corner + 0 * inca +
+											SVL] );
+								}
 								if ( rows_left_bot > 1 )
-									zp5 = svcreate2(
-										svld1_f32( pc0,
-											&a_[tile_BL_corner + 1 * inca] ),
-										svld1_f32( pc1,
-											&a_[tile_BL_corner + 1 * inca +
-												SVL] ) );
+								{
+									v5_0 = svld1_f32( pc0,
+										&a_[tile_BL_corner + 1 * inca] );
+									v5_1 = svld1_f32( pc1,
+										&a_[tile_BL_corner + 1 * inca +
+											SVL] );
+								}
 								if ( rows_left_bot > 2 )
-									zp6 = svcreate2(
-										svld1_f32( pc0,
-											&a_[tile_BL_corner + 2 * inca] ),
-										svld1_f32( pc1,
-											&a_[tile_BL_corner + 2 * inca +
-												SVL] ) );
+								{
+									v6_0 = svld1_f32( pc0,
+										&a_[tile_BL_corner + 2 * inca] );
+									v6_1 = svld1_f32( pc1,
+										&a_[tile_BL_corner + 2 * inca +
+											SVL] );
+								}
 								if ( rows_left_bot > 3 )
-									zp7 = svcreate2(
-										svld1_f32( pc0,
-											&a_[tile_BL_corner + 3 * inca] ),
-										svld1_f32( pc1,
-											&a_[tile_BL_corner + 3 * inca +
-												SVL] ) );
+								{
+									v7_0 = svld1_f32( pc0,
+										&a_[tile_BL_corner + 3 * inca] );
+									v7_1 = svld1_f32( pc1,
+										&a_[tile_BL_corner + 3 * inca +
+											SVL] );
+								}
 
-								// 6. Shuffle into x4 tuples
-								svfloat32x4_t zq0 = svcreate4( svget2( zp0, 0 ),
-									svget2( zp1, 0 ), svget2( zp2, 0 ),
-									svget2( zp3, 0 ) );
-								svfloat32x4_t zq1 = svcreate4( svget2( zp0, 1 ),
-									svget2( zp1, 1 ), svget2( zp2, 1 ),
-									svget2( zp3, 1 ) );
-								svfloat32x4_t zq2 = svcreate4( svget2( zp4, 0 ),
-									svget2( zp5, 0 ), svget2( zp6, 0 ),
-									svget2( zp7, 0 ) );
-								svfloat32x4_t zq3 = svcreate4( svget2( zp4, 1 ),
-									svget2( zp5, 1 ), svget2( zp6, 1 ),
-									svget2( zp7, 1 ) );
+								// 6. Write into ZA
+								svwrite_hor_za32_f32_m( 0, trow + 0, p_all, v0_0 );
+								svwrite_hor_za32_f32_m( 0, trow + 1, p_all, v1_0 );
+								svwrite_hor_za32_f32_m( 0, trow + 2, p_all, v2_0 );
+								svwrite_hor_za32_f32_m( 0, trow + 3, p_all, v3_0 );
 
-								// 7. Write into ZA
-								svwrite_hor_za32_f32_vg4( 0, trow, zq0 );
-								svwrite_hor_za32_f32_vg4( 1, trow, zq1 );
-								svwrite_hor_za32_f32_vg4( 2, trow, zq2 );
-								svwrite_hor_za32_f32_vg4( 3, trow, zq3 );
+								svwrite_hor_za32_f32_m( 1, trow + 0, p_all, v0_1 );
+								svwrite_hor_za32_f32_m( 1, trow + 1, p_all, v1_1 );
+								svwrite_hor_za32_f32_m( 1, trow + 2, p_all, v2_1 );
+								svwrite_hor_za32_f32_m( 1, trow + 3, p_all, v3_1 );
+
+								svwrite_hor_za32_f32_m( 2, trow + 0, p_all, v4_0 );
+								svwrite_hor_za32_f32_m( 2, trow + 1, p_all, v5_0 );
+								svwrite_hor_za32_f32_m( 2, trow + 2, p_all, v6_0 );
+								svwrite_hor_za32_f32_m( 2, trow + 3, p_all, v7_0 );
+
+								svwrite_hor_za32_f32_m( 3, trow + 0, p_all, v4_1 );
+								svwrite_hor_za32_f32_m( 3, trow + 1, p_all, v5_1 );
+								svwrite_hor_za32_f32_m( 3, trow + 2, p_all, v6_1 );
+								svwrite_hor_za32_f32_m( 3, trow + 3, p_all, v7_1 );
 							}
 						}
 						// Check if we are at the edge and fewer than
@@ -498,40 +503,48 @@ __arm_new( "za" ) __arm_locally_streaming void bli_spackm_armsme_int_2SVLx2SVL
 							// Read - as - columns and store
 							for ( uint64_t tcol = 0; tcol < SVL; tcol += 4 )
 							{
-								svcount_t p0 = svptrue_c32();
+								svbool_t p0 = svptrue_b32();
 
-								// Each svread_ver reads 4 columns of the
-								// tile(SVL).
-								svfloat32x4_t zq0 = svread_ver_za32_f32_vg4(
-									/* tile: */ 0, /* slice: */ tcol );
-								svfloat32x4_t zq2 = svread_ver_za32_f32_vg4(
-									/* tile: */ 2, /* slice: */ tcol );
+								// Tiles 0 and 2
+								svfloat32_t z0_0 = svread_ver_za32_m( svundef_f32(), p0, 0, tcol + 0 );
+								svfloat32_t z0_1 = svread_ver_za32_m( svundef_f32(), p0, 2, tcol + 0 );
+								svfloat32_t z0_2 = svread_ver_za32_m( svundef_f32(), p0, 0, tcol + 1 );
+								svfloat32_t z0_3 = svread_ver_za32_m( svundef_f32(), p0, 2, tcol + 1 );
+								
+								svfloat32_t z0_4 = svread_ver_za32_m( svundef_f32(), p0, 0, tcol + 2 );
+								svfloat32_t z0_5 = svread_ver_za32_m( svundef_f32(), p0, 2, tcol + 2 );
+								svfloat32_t z0_6 = svread_ver_za32_m( svundef_f32(), p0, 0, tcol + 3 );
+								svfloat32_t z0_7 = svread_ver_za32_m( svundef_f32(), p0, 2, tcol + 3 );
 
-								svfloat32x4_t zq1 = svread_ver_za32_f32_vg4(
-									/* tile: */ 1, /* slice: */ tcol );
-								svfloat32x4_t zq3 = svread_ver_za32_f32_vg4(
-									/* tile: */ 3, /* slice: */ tcol );
+								// Tiles 1 and 3
+								svfloat32_t z1_0 = svread_ver_za32_m( svundef_f32(), p0, 1, tcol + 0 );
+								svfloat32_t z1_1 = svread_ver_za32_m( svundef_f32(), p0, 3, tcol + 0 );
+								svfloat32_t z1_2 = svread_ver_za32_m( svundef_f32(), p0, 1, tcol + 1 );
+								svfloat32_t z1_3 = svread_ver_za32_m( svundef_f32(), p0, 3, tcol + 1 );
+								
+								svfloat32_t z1_4 = svread_ver_za32_m( svundef_f32(), p0, 1, tcol + 2 );
+								svfloat32_t z1_5 = svread_ver_za32_m( svundef_f32(), p0, 3, tcol + 2 );
+								svfloat32_t z1_6 = svread_ver_za32_m( svundef_f32(), p0, 1, tcol + 3 );
+								svfloat32_t z1_7 = svread_ver_za32_m( svundef_f32(), p0, 3, tcol + 3 );
 
-								svfloat32x4_t zq0_ = svcreate4( 
-									svget4( zq0, 0 ), svget4( zq2, 0 ),
-									svget4( zq0, 1 ), svget4( zq2, 1 ) );
+								svst1_f32( p0, &p_[0], z0_0 );
+								svst1_f32( p0, &p_[1 * SVL], z0_1 );
+								svst1_f32( p0, &p_[2 * SVL], z0_2 );
+								svst1_f32( p0, &p_[3 * SVL], z0_3 );
+								svst1_f32( p0, &p_[4 * SVL], z0_4 );
+								svst1_f32( p0, &p_[5 * SVL], z0_5 );
+								svst1_f32( p0, &p_[6 * SVL], z0_6 );
+								svst1_f32( p0, &p_[7 * SVL], z0_7 );
 
-								svfloat32x4_t zq1_ = svcreate4( 
-									svget4( zq0, 2 ), svget4( zq2, 2 ),
-									svget4( zq0, 3 ), svget4( zq2, 3 ) );
+								svst1_f32( p0, &p_[2 * SVL * SVL + 0], z1_0 );
+								svst1_f32( p0, &p_[2 * SVL * SVL + 1 * SVL], z1_1 );
+								svst1_f32( p0, &p_[2 * SVL * SVL + 2 * SVL], z1_2 );
+								svst1_f32( p0, &p_[2 * SVL * SVL + 3 * SVL], z1_3 );
+								svst1_f32( p0, &p_[2 * SVL * SVL + 4 * SVL], z1_4 );
+								svst1_f32( p0, &p_[2 * SVL * SVL + 5 * SVL], z1_5 );
+								svst1_f32( p0, &p_[2 * SVL * SVL + 6 * SVL], z1_6 );
+								svst1_f32( p0, &p_[2 * SVL * SVL + 7 * SVL], z1_7 );
 
-								svfloat32x4_t zq2_ = svcreate4( 
-									svget4( zq1, 0 ), svget4( zq3, 0 ),
-									svget4( zq1, 1 ), svget4( zq3, 1 ) );
-
-								svfloat32x4_t zq3_ = svcreate4( 
-									svget4( zq1, 2 ), svget4( zq3, 2 ),
-									svget4( zq1, 3 ), svget4( zq3, 3 ) );
-
-								svst1( p0, &p_[0], zq0_ );
-								svst1( p0, &p_[4 * SVL], zq1_ );
-								svst1( p0, &p_[2 * SVL * SVL], zq2_ );
-								svst1( p0, &p_[2 * SVL * SVL + 4 * SVL], zq3_ );
 								p_ += ( 8 * SVL );
 							}
 							p_ += ( 2 * SVL * SVL );

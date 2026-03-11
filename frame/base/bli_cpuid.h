@@ -185,7 +185,7 @@ enum
 {
 	FEATURE_NEON = 0x01,
 	FEATURE_SVE  = 0x02,
-  FEATURE_SME2 = 0x04
+  FEATURE_SME = 0x04
 };
 
 #endif
