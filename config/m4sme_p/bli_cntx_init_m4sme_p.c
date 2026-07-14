@@ -54,21 +54,21 @@ void bli_cntx_init_m4sme_p( cntx_t* cntx )
 	  BLIS_PACKM_KER, BLIS_FLOAT, bli_spackm_armsme_int_2SVLx2SVL,
 	  BLIS_PACKM_KER, BLIS_DOUBLE, bli_dpackm_armsme_int_4SVLx2SVL,
 
-	//   BLIS_GEMMSUP_RRR_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_ccc_2SVLx2SVL,
-	  BLIS_GEMMSUP_RRC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_double_pack_2SVLx2SVL,
-	  BLIS_GEMMSUP_RCC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_crr_2SVLx2SVL,
+	// //   BLIS_GEMMSUP_RRR_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_ccc_2SVLx2SVL,
+	//   BLIS_GEMMSUP_RRC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_double_pack_2SVLx2SVL,
+	//   BLIS_GEMMSUP_RCC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_crr_2SVLx2SVL,
 
-	  BLIS_GEMMSUP_CRR_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_crr_2SVLx2SVL,
-	  BLIS_GEMMSUP_CRC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_double_pack_2SVLx2SVL,
+	//   BLIS_GEMMSUP_CRR_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_crr_2SVLx2SVL,
+	//   BLIS_GEMMSUP_CRC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_double_pack_2SVLx2SVL,
+	// //   BLIS_GEMMSUP_CCC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_ccc_2SVLx2SVL,
+	//   BLIS_GEMMSUP_RCR_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_2SVLx2SVL,
+	//   BLIS_GEMMSUP_CCR_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_2SVLx2SVL,
+	//   BLIS_GEMMSUP_RRR_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_ccc_2SVLx2SVL,
+	// //   BLIS_GEMMSUP_RRC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_fallback,
+	// //   BLIS_GEMMSUP_RCC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_fallback,
+	// //   BLIS_GEMMSUP_CRR_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_fallback,
+	// //   BLIS_GEMMSUP_CRC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_fallback,
 	//   BLIS_GEMMSUP_CCC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_ccc_2SVLx2SVL,
-	  BLIS_GEMMSUP_RCR_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_2SVLx2SVL,
-	  BLIS_GEMMSUP_CCR_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_2SVLx2SVL,
-	  BLIS_GEMMSUP_RRR_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_ccc_2SVLx2SVL,
-	//   BLIS_GEMMSUP_RRC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_fallback,
-	//   BLIS_GEMMSUP_RCC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_fallback,
-	//   BLIS_GEMMSUP_CRR_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_fallback,
-	//   BLIS_GEMMSUP_CRC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_fallback,
-	  BLIS_GEMMSUP_CCC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_ccc_2SVLx2SVL,
 
 	  BLIS_VA_END
 	);
@@ -94,15 +94,15 @@ void bli_cntx_init_m4sme_p( cntx_t* cntx )
 	bli_blksz_init_easy( &blkszs[ BLIS_NC ],    10240, 3072,  -1,    -1 );
 
 
-	bli_blksz_init_easy( &blkszs[ BLIS_MT ],    1504,   -1,   -1,    -1 );
-	bli_blksz_init_easy( &blkszs[ BLIS_NT ],    1504,   -1,   -1,    -1 );
-	bli_blksz_init_easy( &blkszs[ BLIS_KT ],    1,   -1,   -1,    -1 );
+	// bli_blksz_init_easy( &blkszs[ BLIS_MT ],    1504,   -1,   -1,    -1 );
+	// bli_blksz_init_easy( &blkszs[ BLIS_NT ],    1504,   -1,   -1,    -1 );
+	// bli_blksz_init_easy( &blkszs[ BLIS_KT ],    1,   -1,   -1,    -1 );
 
-	bli_blksz_init_easy( &blkszs[ BLIS_MR_SUP ],  32,    32,    -1,    -1 );
-	bli_blksz_init_easy( &blkszs[ BLIS_NR_SUP ],  32,    16,    -1,    -1 );
-	bli_blksz_init_easy( &blkszs[ BLIS_MC_SUP ],  32,    32,    -1,    -1 );
-	bli_blksz_init_easy( &blkszs[ BLIS_KC_SUP ],  2080,  1504,  -1,    -1 );
-	bli_blksz_init_easy( &blkszs[ BLIS_NC_SUP ],  32,    16,    -1,    -1 );
+	// bli_blksz_init_easy( &blkszs[ BLIS_MR_SUP ],  32,    32,    -1,    -1 );
+	// bli_blksz_init_easy( &blkszs[ BLIS_NR_SUP ],  32,    16,    -1,    -1 );
+	// bli_blksz_init_easy( &blkszs[ BLIS_MC_SUP ],  32,    32,    -1,    -1 );
+	// bli_blksz_init_easy( &blkszs[ BLIS_KC_SUP ],  2080,  1504,  -1,    -1 );
+	// bli_blksz_init_easy( &blkszs[ BLIS_NC_SUP ],  32,    16,    -1,    -1 );
 #endif
 
 #if 0 // CONFIG_2
@@ -222,15 +222,15 @@ void bli_cntx_init_m4sme_p( cntx_t* cntx )
 	  BLIS_NR, &blkszs[ BLIS_NR ], BLIS_NR,
 	  BLIS_MR, &blkszs[ BLIS_MR ], BLIS_MR,
 
-	  BLIS_MT, &blkszs[ BLIS_MT ], BLIS_MT,
-	  BLIS_NT, &blkszs[ BLIS_NT ], BLIS_NT,
-	  BLIS_KT, &blkszs[ BLIS_KT ], BLIS_KT,
+	//   BLIS_MT, &blkszs[ BLIS_MT ], BLIS_MT,
+	//   BLIS_NT, &blkszs[ BLIS_NT ], BLIS_NT,
+	//   BLIS_KT, &blkszs[ BLIS_KT ], BLIS_KT,
 
-	  BLIS_MR_SUP, &blkszs[ BLIS_MR_SUP ], BLIS_MR_SUP,
-	  BLIS_NR_SUP, &blkszs[ BLIS_NR_SUP ], BLIS_NR_SUP,
-	  BLIS_MC_SUP, &blkszs[ BLIS_MC_SUP ], BLIS_MC_SUP,
-	  BLIS_KC_SUP, &blkszs[ BLIS_KC_SUP ], BLIS_KC_SUP,
-	  BLIS_NC_SUP, &blkszs[ BLIS_NC_SUP ], BLIS_NC_SUP,
+	//   BLIS_MR_SUP, &blkszs[ BLIS_MR_SUP ], BLIS_MR_SUP,
+	//   BLIS_NR_SUP, &blkszs[ BLIS_NR_SUP ], BLIS_NR_SUP,
+	//   BLIS_MC_SUP, &blkszs[ BLIS_MC_SUP ], BLIS_MC_SUP,
+	//   BLIS_KC_SUP, &blkszs[ BLIS_KC_SUP ], BLIS_KC_SUP,
+	//   BLIS_NC_SUP, &blkszs[ BLIS_NC_SUP ], BLIS_NC_SUP,
 	  	  
 	  BLIS_VA_END
 	);
