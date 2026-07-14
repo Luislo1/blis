@@ -144,7 +144,7 @@ __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_int_2SVLx2SVL
 	}
 
 	svzero_za();
-
+	
 	uint64_t k_;
 	uint64_t k_iter = k / 8;
 	uint64_t k_left = k % 8;
@@ -162,7 +162,7 @@ __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_int_2SVLx2SVL
 			svget4( zR00, 0 ) );
 
 		__pldx( 0, 1, 1, (float *)&a_next[0] );
-		__pldx( 0, 1, 1, (float *)&b_next[0] );
+		// __pldx( 0, 1, 1, (float *)&b_next[0] );
 
 		svmopa_za32_m( 2, svptrue_b32(), svptrue_b32(), svget4( zL00, 0 ),
 			svget4( zR00, 1 ) );
@@ -190,7 +190,7 @@ __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_int_2SVLx2SVL
 			svget4( zR02, 0 ) );
 
 		__pldx( 0, 1, 1, (float *)&a_next[4 * SVL] );
-		__pldx( 0, 1, 1, (float *)&b_next[4 * SVL] );
+		// __pldx( 0, 1, 1, (float *)&b_next[4 * SVL] );
 
 		svmopa_za32_m( 2, svptrue_b32(), svptrue_b32(), svget4( zL02, 0 ),
 			svget4( zR02, 1 ) );
@@ -217,7 +217,7 @@ __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_int_2SVLx2SVL
 			svget4( zR04, 0 ) );
 
 		__pldx( 0, 1, 1, (float *)&a_next[8 * SVL] );
-		__pldx( 0, 1, 1, (float *)&b_next[8 * SVL] );
+		// __pldx( 0, 1, 1, (float *)&b_next[8 * SVL] );
 
 		svmopa_za32_m( 2, svptrue_b32(), svptrue_b32(), svget4( zL04, 0 ),
 			svget4( zR04, 1 ) );
@@ -245,7 +245,7 @@ __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_int_2SVLx2SVL
 			svget4( zR06, 0 ) );
 
 		__pldx( 0, 1, 1, (float *)&a_next[12 * SVL] );
-		__pldx( 0, 1, 1, (float *)&b_next[12 * SVL] );
+		// __pldx( 0, 1, 1, (float *)&b_next[12 * SVL] );
 
 		svmopa_za32_m( 2, svptrue_b32(), svptrue_b32(), svget4( zL06, 0 ),
 			svget4( zR06, 1 ) );

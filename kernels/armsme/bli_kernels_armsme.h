@@ -135,3 +135,89 @@ __arm_new( "za" ) __arm_locally_streaming void bli_dgemm_armsme_int_2SVLx4SVL
        const auxinfo_t* data,
        const cntx_t*    cntx
      );
+
+     __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_sup_2SVLx2SVL
+     (
+             conj_t     conja,
+             conj_t     conjb,
+             dim_t      m,
+             dim_t      n,
+             dim_t      k,
+       const void*      alpha,
+       const void*      a, inc_t rs_a, inc_t cs_a,
+       const void*      b, inc_t rs_b, inc_t cs_b,
+       const void*      beta,
+             void*      c, inc_t rs_c, inc_t cs_c,
+       const auxinfo_t* data,
+       const cntx_t*    cntx
+     );
+     __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_sup_ccc_2SVLx2SVL
+     (
+             conj_t     conja,
+             conj_t     conjb,
+             dim_t      m,
+             dim_t      n,
+             dim_t      k,
+       const void*      alpha,
+       const void*      a, inc_t rs_a, inc_t cs_a,
+       const void*      b, inc_t rs_b, inc_t cs_b,
+       const void*      beta,
+             void*      c, inc_t rs_c, inc_t cs_c,
+       const auxinfo_t* data,
+       const cntx_t*    cntx
+     );
+     __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_sup_double_pack_2SVLx2SVL
+     (
+             conj_t     conja,
+             conj_t     conjb,
+             dim_t      m,
+             dim_t      n,
+             dim_t      k,
+       const void*      alpha,
+       const void*      a, inc_t rs_a, inc_t cs_a,
+       const void*      b, inc_t rs_b, inc_t cs_b,
+       const void*      beta,
+             void*      c, inc_t rs_c, inc_t cs_c,
+       const auxinfo_t* data,
+       const cntx_t*    cntx
+     );
+
+         __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_sup_crr_2SVLx2SVL
+     (
+             conj_t     conja,
+             conj_t     conjb,
+             dim_t      m,
+             dim_t      n,
+             dim_t      k,
+       const void*      alpha,
+       const void*      a, inc_t rs_a, inc_t cs_a,
+       const void*      b, inc_t rs_b, inc_t cs_b,
+       const void*      beta,
+             void*      c, inc_t rs_c, inc_t cs_c,
+       const auxinfo_t* data,
+       const cntx_t*    cntx
+     ); 
+     
+         __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_sup_test_2SVLx2SVL
+     (
+             conj_t     conja,
+             conj_t     conjb,
+             dim_t      m,
+             dim_t      n,
+             dim_t      k,
+       const void*      alpha,
+       const void*      a, inc_t rs_a, inc_t cs_a,
+       const void*      b, inc_t rs_b, inc_t cs_b,
+       const void*      beta,
+             void*      c, inc_t rs_c, inc_t cs_c,
+       const auxinfo_t* data,
+       const cntx_t*    cntx
+     ); 
+
+     void bli_sgemm_armsme_sup_fallback(
+    conj_t conja, conj_t conjb, dim_t m, dim_t n, dim_t k,
+    void* alpha, void* a, inc_t rs_a, inc_t cs_a,
+    void* b, inc_t rs_b, inc_t cs_b,
+    void* beta, void* c, inc_t rs_c, inc_t cs_c,
+    auxinfo_t* data, cntx_t* cntx
+);
