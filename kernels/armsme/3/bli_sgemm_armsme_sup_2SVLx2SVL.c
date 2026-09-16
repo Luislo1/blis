@@ -19,14 +19,11 @@ __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_sup_2SVLx2SVL
 {
     uint64_t SVL = svcntsw();
     
-    float *a_ = (float *)a;
-    float *b_ = (float *)b;
-    float *c_ = (float *)c;
-
     svzero_za();
+
+    // Define all loop-invariant predicates ONCE
     svbool_t pg_M0 = svwhilelt_b32((uint64_t)0, (uint64_t)m);
     svbool_t pg_M1 = svwhilelt_b32((uint64_t)SVL, (uint64_t)m);
-    
     svbool_t pg_N0 = svwhilelt_b32((uint64_t)0, (uint64_t)n);
     svbool_t pg_N1 = svwhilelt_b32((uint64_t)SVL, (uint64_t)n);
     svbool_t pg = svptrue_b32();
@@ -34,77 +31,82 @@ __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_sup_2SVLx2SVL
 
     uint64_t k_iter = k / 4;
     uint64_t k_left = k % 4;
-    // printf("rs_c:%d, rs_a:%d, rs_b:%d\n", rs_c, rs_a, rs_b);
+
+    const float *a_ptr = (const float *)a;
+    const float *b_ptr = (const float *)b;
+
+    // K-LOOP 
     for (uint64_t k_ = 0; k_ < k_iter; k_++ )
     {
-        // Step 0 Loads
-        svfloat32x2_t zL0 = svld1_f32_x2(pg_c, a_ + 0 * cs_a);
-        svfloat32x2_t zR0 = svld1_f32_x2(pg_c, b_ + 0 * rs_b);
+        // PRE-LOAD STEP 0 & 1
+        svfloat32x2_t zL0 = svld1_f32_x2(pg_c, a_ptr + 0 * cs_a);
+        svfloat32x2_t zR0 = svld1_f32_x2(pg_c, b_ptr + 0 * rs_b);
+        
+        svfloat32x2_t zL1 = svld1_f32_x2(pg_c, a_ptr + 1 * cs_a);
+        svfloat32x2_t zR1 = svld1_f32_x2(pg_c, b_ptr + 1 * rs_b);
 
-        // Step 0 Outer Products
+        // MATH STEP 0
         svmopa_za32_m( 0, pg_M0, pg_N0, svget2(zL0, 0), svget2(zR0, 0));
         svmopa_za32_m( 1, pg_M1, pg_N0, svget2(zL0, 1), svget2(zR0, 0));
         svmopa_za32_m( 2, pg_M0, pg_N1, svget2(zL0, 0), svget2(zR0, 1));
         svmopa_za32_m( 3, pg_M1, pg_N1, svget2(zL0, 1), svget2(zR0, 1));
 
-        // Step 1
-        svfloat32x2_t zL1 = svld1_f32_x2(pg_c, a_ + 1 * cs_a);
-        svfloat32x2_t zR1 = svld1_f32_x2(pg_c, b_ + 1 * rs_b);
+        // LOAD STEP 2
+        svfloat32x2_t zL2 = svld1_f32_x2(pg_c, a_ptr + 2 * cs_a);
+        svfloat32x2_t zR2 = svld1_f32_x2(pg_c, b_ptr + 2 * rs_b);
 
+        // MATH STEP 1
         svmopa_za32_m( 0, pg_M0, pg_N0, svget2(zL1, 0), svget2(zR1, 0));
         svmopa_za32_m( 1, pg_M1, pg_N0, svget2(zL1, 1), svget2(zR1, 0));
         svmopa_za32_m( 2, pg_M0, pg_N1, svget2(zL1, 0), svget2(zR1, 1));
         svmopa_za32_m( 3, pg_M1, pg_N1, svget2(zL1, 1), svget2(zR1, 1));
 
-        // Step 2
-        svfloat32x2_t zL2 = svld1_f32_x2(pg_c, a_ + 2 * cs_a);
-        svfloat32x2_t zR2 = svld1_f32_x2(pg_c, b_ + 2 * rs_b);
+        // LOAD STEP 3
+        svfloat32x2_t zL3 = svld1_f32_x2(pg_c, a_ptr + 3 * cs_a);
+        svfloat32x2_t zR3 = svld1_f32_x2(pg_c, b_ptr + 3 * rs_b);
 
+        // MATH STEP 2
         svmopa_za32_m( 0, pg_M0, pg_N0, svget2(zL2, 0), svget2(zR2, 0));
         svmopa_za32_m( 1, pg_M1, pg_N0, svget2(zL2, 1), svget2(zR2, 0));
         svmopa_za32_m( 2, pg_M0, pg_N1, svget2(zL2, 0), svget2(zR2, 1));
         svmopa_za32_m( 3, pg_M1, pg_N1, svget2(zL2, 1), svget2(zR2, 1));
 
-        // Step 3
-        svfloat32x2_t zL3 = svld1_f32_x2(pg_c, a_ + 3 * cs_a);
-        svfloat32x2_t zR3 = svld1_f32_x2(pg_c, b_ + 3 * rs_b);
-
+        // MATH STEP 3
         svmopa_za32_m( 0, pg_M0, pg_N0, svget2(zL3, 0), svget2(zR3, 0));
         svmopa_za32_m( 1, pg_M1, pg_N0, svget2(zL3, 1), svget2(zR3, 0));
         svmopa_za32_m( 2, pg_M0, pg_N1, svget2(zL3, 0), svget2(zR3, 1));
         svmopa_za32_m( 3, pg_M1, pg_N1, svget2(zL3, 1), svget2(zR3, 1));
 
-        a_ += 4 * cs_a;
-        b_ += 4 * rs_b;  
+        a_ptr += 4 * cs_a;
+        b_ptr += 4 * rs_b;  
     }
 
-    // Remainder Loop
+    // REMAINDER LOOP
     for (uint64_t k_ = 0; k_ < k_left; k_ += 1 )
     {
-        svfloat32x2_t zL = svld1_f32_x2(pg_c, a_);
-        svfloat32x2_t zR = svld1_f32_x2(pg_c, b_);
+        svfloat32x2_t zL = svld1_f32_x2(pg_c, a_ptr);
+        svfloat32x2_t zR = svld1_f32_x2(pg_c, b_ptr);
 
         svmopa_za32_m( 0, pg_M0, pg_N0, svget2(zL, 0), svget2(zR, 0));
         svmopa_za32_m( 1, pg_M1, pg_N0, svget2(zL, 1), svget2(zR, 0));
         svmopa_za32_m( 2, pg_M0, pg_N1, svget2(zL, 0), svget2(zR, 1));
         svmopa_za32_m( 3, pg_M1, pg_N1, svget2(zL, 1), svget2(zR, 1));
 
-        a_ += cs_a;
-        b_ += rs_b;  
+        a_ptr += cs_a;
+        b_ptr += rs_b;  
     }
 
+    // EPILOGUE
     float beta_ = *(float *)beta;
     float alpha_ = *(float *)alpha;
-
-    svfloat32_t zbeta = svdup_f32( beta_ ); 
-    svfloat32_t zalpha = svdup_f32( alpha_ );
-
-    const uint64_t result_tile_TL_corner = 0;
-    const uint64_t result_tile_BL_corner = SVL * rs_c;
+    float *c_ = (float *)c;
 
     if (m == 2 * SVL && n == 2 * SVL) 
     {
-        // Fast Path: Row-Major C
+        // FAST PATH
+        float *c_ptr_0 = c_;
+        float *c_ptr_1 = c_ + SVL * rs_c;
+
         for ( uint64_t trow = 0; trow < SVL; trow += 4 )
         {
             // Read 4 rows at once out of each ZA tile
@@ -115,122 +117,84 @@ __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_sup_2SVLx2SVL
 
             // Row 0 (trow + 0)
             {
-                uint64_t r_trow = trow + 0;
+                svfloat32_t z0 = svmul_n_f32_x( pg, svget4(zq0, 0), alpha_ );
+                svfloat32_t z1 = svmul_n_f32_x( pg, svget4(zq1, 0), alpha_ );
+                svfloat32_t z2 = svmul_n_f32_x( pg, svget4(zq2, 0), alpha_ );
+                svfloat32_t z3 = svmul_n_f32_x( pg, svget4(zq3, 0), alpha_ );
 
-                svfloat32_t z0 = svget4(zq0, 0);
-                svfloat32_t z1 = svget4(zq1, 0);
-                svfloat32_t z2 = svget4(zq2, 0);
-                svfloat32_t z3 = svget4(zq3, 0);
+                svfloat32x2_t zq_c02 = svld1_f32_x2( pg_c, c_ptr_0 + 0 * rs_c );
+                z0 = svmla_n_f32_x( pg, z0, svget2(zq_c02, 0), beta_ );
+                z2 = svmla_n_f32_x( pg, z2, svget2(zq_c02, 1), beta_ );
+                svst1_f32_x2( pg_c, c_ptr_0 + 0 * rs_c, svcreate2( z0, z2 ) );
 
-                // Scale by alpha
-                z0 = svmul_f32_m( pg, z0, zalpha );
-                z1 = svmul_f32_m( pg, z1, zalpha );
-                z2 = svmul_f32_m( pg, z2, zalpha );
-                z3 = svmul_f32_m( pg, z3, zalpha );
-
-                float *c_ptr_0 = &c_[result_tile_TL_corner + r_trow * rs_c];
-                float *c_ptr_1 = &c_[result_tile_BL_corner + r_trow * rs_c];
-
-                // Load C, scale by beta, and store back
-                svfloat32x2_t zq_c02 = svld1_f32_x2( pg_c, c_ptr_0 );
-                z0 = svmla_m( pg, z0, svget2(zq_c02, 0), zbeta );
-                z2 = svmla_m( pg, z2, svget2(zq_c02, 1), zbeta );
-                svst1_f32_x2( pg_c, c_ptr_0, svcreate2( z0, z2 ) );
-
-                svfloat32x2_t zq_c13 = svld1_f32_x2( pg_c, c_ptr_1 );
-                z1 = svmla_m( pg, z1, svget2(zq_c13, 0), zbeta );
-                z3 = svmla_m( pg, z3, svget2(zq_c13, 1), zbeta );
-                svst1_f32_x2( pg_c, c_ptr_1, svcreate2( z1, z3 ) );
+                svfloat32x2_t zq_c13 = svld1_f32_x2( pg_c, c_ptr_1 + 0 * rs_c );
+                z1 = svmla_n_f32_x( pg, z1, svget2(zq_c13, 0), beta_ );
+                z3 = svmla_n_f32_x( pg, z3, svget2(zq_c13, 1), beta_ );
+                svst1_f32_x2( pg_c, c_ptr_1 + 0 * rs_c, svcreate2( z1, z3 ) );
             }
 
             // Row 1 (trow + 1)
             {
-                uint64_t r_trow = trow + 1;
+                svfloat32_t z0 = svmul_n_f32_x( pg, svget4(zq0, 1), alpha_ );
+                svfloat32_t z1 = svmul_n_f32_x( pg, svget4(zq1, 1), alpha_ );
+                svfloat32_t z2 = svmul_n_f32_x( pg, svget4(zq2, 1), alpha_ );
+                svfloat32_t z3 = svmul_n_f32_x( pg, svget4(zq3, 1), alpha_ );
 
-                svfloat32_t z0 = svget4(zq0, 1);
-                svfloat32_t z1 = svget4(zq1, 1);
-                svfloat32_t z2 = svget4(zq2, 1);
-                svfloat32_t z3 = svget4(zq3, 1);
+                svfloat32x2_t zq_c02 = svld1_f32_x2( pg_c, c_ptr_0 + 1 * rs_c );
+                z0 = svmla_n_f32_x( pg, z0, svget2(zq_c02, 0), beta_ );
+                z2 = svmla_n_f32_x( pg, z2, svget2(zq_c02, 1), beta_ );
+                svst1_f32_x2( pg_c, c_ptr_0 + 1 * rs_c, svcreate2( z0, z2 ) );
 
-                z0 = svmul_f32_m( pg, z0, zalpha );
-                z1 = svmul_f32_m( pg, z1, zalpha );
-                z2 = svmul_f32_m( pg, z2, zalpha );
-                z3 = svmul_f32_m( pg, z3, zalpha );
-
-                float *c_ptr_0 = &c_[result_tile_TL_corner + r_trow * rs_c];
-                float *c_ptr_1 = &c_[result_tile_BL_corner + r_trow * rs_c];
-
-                svfloat32x2_t zq_c02 = svld1_f32_x2( pg_c, c_ptr_0 );
-                z0 = svmla_m( pg, z0, svget2(zq_c02, 0), zbeta );
-                z2 = svmla_m( pg, z2, svget2(zq_c02, 1), zbeta );
-                svst1_f32_x2( pg_c, c_ptr_0, svcreate2( z0, z2 ) );
-
-                svfloat32x2_t zq_c13 = svld1_f32_x2( pg_c, c_ptr_1 );
-                z1 = svmla_m( pg, z1, svget2(zq_c13, 0), zbeta );
-                z3 = svmla_m( pg, z3, svget2(zq_c13, 1), zbeta );
-                svst1_f32_x2( pg_c, c_ptr_1, svcreate2( z1, z3 ) );
+                svfloat32x2_t zq_c13 = svld1_f32_x2( pg_c, c_ptr_1 + 1 * rs_c );
+                z1 = svmla_n_f32_x( pg, z1, svget2(zq_c13, 0), beta_ );
+                z3 = svmla_n_f32_x( pg, z3, svget2(zq_c13, 1), beta_ );
+                svst1_f32_x2( pg_c, c_ptr_1 + 1 * rs_c, svcreate2( z1, z3 ) );
             }
 
             // Row 2 (trow + 2)
             {
-                uint64_t r_trow = trow + 2;
+                svfloat32_t z0 = svmul_n_f32_x( pg, svget4(zq0, 2), alpha_ );
+                svfloat32_t z1 = svmul_n_f32_x( pg, svget4(zq1, 2), alpha_ );
+                svfloat32_t z2 = svmul_n_f32_x( pg, svget4(zq2, 2), alpha_ );
+                svfloat32_t z3 = svmul_n_f32_x( pg, svget4(zq3, 2), alpha_ );
 
-                svfloat32_t z0 = svget4(zq0, 2);
-                svfloat32_t z1 = svget4(zq1, 2);
-                svfloat32_t z2 = svget4(zq2, 2);
-                svfloat32_t z3 = svget4(zq3, 2);
+                svfloat32x2_t zq_c02 = svld1_f32_x2( pg_c, c_ptr_0 + 2 * rs_c );
+                z0 = svmla_n_f32_x( pg, z0, svget2(zq_c02, 0), beta_ );
+                z2 = svmla_n_f32_x( pg, z2, svget2(zq_c02, 1), beta_ );
+                svst1_f32_x2( pg_c, c_ptr_0 + 2 * rs_c, svcreate2( z0, z2 ) );
 
-                z0 = svmul_f32_m( pg, z0, zalpha );
-                z1 = svmul_f32_m( pg, z1, zalpha );
-                z2 = svmul_f32_m( pg, z2, zalpha );
-                z3 = svmul_f32_m( pg, z3, zalpha );
-
-                float *c_ptr_0 = &c_[result_tile_TL_corner + r_trow * rs_c];
-                float *c_ptr_1 = &c_[result_tile_BL_corner + r_trow * rs_c];
-
-                svfloat32x2_t zq_c02 = svld1_f32_x2( pg_c, c_ptr_0 );
-                z0 = svmla_m( pg, z0, svget2(zq_c02, 0), zbeta );
-                z2 = svmla_m( pg, z2, svget2(zq_c02, 1), zbeta );
-                svst1_f32_x2( pg_c, c_ptr_0, svcreate2( z0, z2 ) );
-
-                svfloat32x2_t zq_c13 = svld1_f32_x2( pg_c, c_ptr_1 );
-                z1 = svmla_m( pg, z1, svget2(zq_c13, 0), zbeta );
-                z3 = svmla_m( pg, z3, svget2(zq_c13, 1), zbeta );
-                svst1_f32_x2( pg_c, c_ptr_1, svcreate2( z1, z3 ) );
+                svfloat32x2_t zq_c13 = svld1_f32_x2( pg_c, c_ptr_1 + 2 * rs_c );
+                z1 = svmla_n_f32_x( pg, z1, svget2(zq_c13, 0), beta_ );
+                z3 = svmla_n_f32_x( pg, z3, svget2(zq_c13, 1), beta_ );
+                svst1_f32_x2( pg_c, c_ptr_1 + 2 * rs_c, svcreate2( z1, z3 ) );
             }
 
             // Row 3 (trow + 3)
             {
-                uint64_t r_trow = trow + 3;
+                svfloat32_t z0 = svmul_n_f32_x( pg, svget4(zq0, 3), alpha_ );
+                svfloat32_t z1 = svmul_n_f32_x( pg, svget4(zq1, 3), alpha_ );
+                svfloat32_t z2 = svmul_n_f32_x( pg, svget4(zq2, 3), alpha_ );
+                svfloat32_t z3 = svmul_n_f32_x( pg, svget4(zq3, 3), alpha_ );
 
-                svfloat32_t z0 = svget4(zq0, 3);
-                svfloat32_t z1 = svget4(zq1, 3);
-                svfloat32_t z2 = svget4(zq2, 3);
-                svfloat32_t z3 = svget4(zq3, 3);
+                svfloat32x2_t zq_c02 = svld1_f32_x2( pg_c, c_ptr_0 + 3 * rs_c );
+                z0 = svmla_n_f32_x( pg, z0, svget2(zq_c02, 0), beta_ );
+                z2 = svmla_n_f32_x( pg, z2, svget2(zq_c02, 1), beta_ );
+                svst1_f32_x2( pg_c, c_ptr_0 + 3 * rs_c, svcreate2( z0, z2 ) );
 
-                z0 = svmul_f32_m( pg, z0, zalpha );
-                z1 = svmul_f32_m( pg, z1, zalpha );
-                z2 = svmul_f32_m( pg, z2, zalpha );
-                z3 = svmul_f32_m( pg, z3, zalpha );
-
-                float *c_ptr_0 = &c_[result_tile_TL_corner + r_trow * rs_c];
-                float *c_ptr_1 = &c_[result_tile_BL_corner + r_trow * rs_c];
-
-                svfloat32x2_t zq_c02 = svld1_f32_x2( pg_c, c_ptr_0 );
-                z0 = svmla_m( pg, z0, svget2(zq_c02, 0), zbeta );
-                z2 = svmla_m( pg, z2, svget2(zq_c02, 1), zbeta );
-                svst1_f32_x2( pg_c, c_ptr_0, svcreate2( z0, z2 ) );
-
-                svfloat32x2_t zq_c13 = svld1_f32_x2( pg_c, c_ptr_1 );
-                z1 = svmla_m( pg, z1, svget2(zq_c13, 0), zbeta );
-                z3 = svmla_m( pg, z3, svget2(zq_c13, 1), zbeta );
-                svst1_f32_x2( pg_c, c_ptr_1, svcreate2( z1, z3 ) );
+                svfloat32x2_t zq_c13 = svld1_f32_x2( pg_c, c_ptr_1 + 3 * rs_c );
+                z1 = svmla_n_f32_x( pg, z1, svget2(zq_c13, 0), beta_ );
+                z3 = svmla_n_f32_x( pg, z3, svget2(zq_c13, 1), beta_ );
+                svst1_f32_x2( pg_c, c_ptr_1 + 3 * rs_c, svcreate2( z1, z3 ) );
             }
+            
+            // Step pointers for next 4 rows
+            c_ptr_0 += 4 * rs_c;
+            c_ptr_1 += 4 * rs_c;
         }
     }
     else 
     {
-        // Edge Path: Row-Major C
+        // EDGE PATH
         for ( uint64_t trow = 0; trow < SVL; trow += 1 )
         {
             bool valid_row_0 = (trow < m);
@@ -242,14 +206,14 @@ __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_sup_2SVLx2SVL
                 svfloat32_t z0 = svread_hor_za32_m( svundef_f32(), pg_N0, 0, trow );
                 svfloat32_t z2 = svread_hor_za32_m( svundef_f32(), pg_N1, 2, trow );
 
-                z0 = svmul_f32_m( pg_N0, z0, zalpha );
-                z2 = svmul_f32_m( pg_N1, z2, zalpha );
+                z0 = svmul_n_f32_z( pg_N0, z0, alpha_ );
+                z2 = svmul_n_f32_z( pg_N1, z2, alpha_ );
 
-                float *c_ptr_0 = &c_[result_tile_TL_corner + trow * rs_c];
-                float *c_ptr_2 = &c_[result_tile_TL_corner + SVL + trow * rs_c];
+                float *c_ptr_0 = c_ + trow * rs_c;
+                float *c_ptr_2 = c_ + SVL + trow * rs_c;
 
-                z0 = svmla_m( pg_N0, z0, svld1_f32(pg_N0, c_ptr_0), zbeta );
-                z2 = svmla_m( pg_N1, z2, svld1_f32(pg_N1, c_ptr_2), zbeta );
+                z0 = svmla_n_f32_m( pg_N0, z0, svld1_f32(pg_N0, c_ptr_0), beta_ );
+                z2 = svmla_n_f32_m( pg_N1, z2, svld1_f32(pg_N1, c_ptr_2), beta_ );
 
                 svst1_f32( pg_N0, c_ptr_0, z0 );
                 svst1_f32( pg_N1, c_ptr_2, z2 );
@@ -261,14 +225,14 @@ __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_sup_2SVLx2SVL
                 svfloat32_t z1 = svread_hor_za32_m( svundef_f32(), pg_N0, 1, trow );
                 svfloat32_t z3 = svread_hor_za32_m( svundef_f32(), pg_N1, 3, trow );
 
-                z1 = svmul_f32_m( pg_N0, z1, zalpha );
-                z3 = svmul_f32_m( pg_N1, z3, zalpha );
+                z1 = svmul_n_f32_z( pg_N0, z1, alpha_ );
+                z3 = svmul_n_f32_z( pg_N1, z3, alpha_ );
 
-                float *c_ptr_1 = &c_[result_tile_BL_corner + trow * rs_c];
-                float *c_ptr_3 = &c_[result_tile_BL_corner + SVL + trow * rs_c];
+                float *c_ptr_1 = c_ + SVL * rs_c + trow * rs_c;
+                float *c_ptr_3 = c_ + SVL * rs_c + SVL + trow * rs_c;
 
-                z1 = svmla_m( pg_N0, z1, svld1_f32(pg_N0, c_ptr_1), zbeta );
-                z3 = svmla_m( pg_N1, z3, svld1_f32(pg_N1, c_ptr_3), zbeta );
+                z1 = svmla_n_f32_m( pg_N0, z1, svld1_f32(pg_N0, c_ptr_1), beta_ );
+                z3 = svmla_n_f32_m( pg_N1, z3, svld1_f32(pg_N1, c_ptr_3), beta_ );
 
                 svst1_f32( pg_N0, c_ptr_1, z1 );
                 svst1_f32( pg_N1, c_ptr_3, z3 );

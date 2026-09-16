@@ -70,6 +70,10 @@ void bli_cntx_init_m4sme_p( cntx_t* cntx )
 	//   BLIS_GEMMSUP_CRC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_fallback,
 	  BLIS_GEMMSUP_CCC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_ccc_2SVLx2SVL,
 
+
+	  BLIS_GEMMTRSM_L_UKR, BLIS_FLOAT,    bli_sgemmtrsm_l_armsme_int_2SVLx2SVL,
+	  BLIS_GEMMTRSM_U_UKR, BLIS_FLOAT,    bli_sgemmtrsm_u_armsme_int_2SVLx2SVL,
+
 	  BLIS_VA_END
 	);
 

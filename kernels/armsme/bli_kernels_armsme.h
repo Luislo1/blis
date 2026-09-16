@@ -221,3 +221,24 @@ __arm_new( "za" ) __arm_locally_streaming void bli_dgemm_armsme_int_2SVLx4SVL
     void* beta, void* c, inc_t rs_c, inc_t cs_c,
     auxinfo_t* data, cntx_t* cntx
 );
+
+__arm_new( "za" ) __arm_locally_streaming void bli_sgemmtrsm_l_armsme_int_2SVLx2SVL
+(
+    dim_t m, dim_t n, dim_t k,
+    const float* alpha,
+    const float* a10, const float* a11,
+    const float* b01, const float* b11,
+    float* c11, inc_t rs_c, inc_t cs_c,
+    const auxinfo_t* data,
+    const cntx_t* cntx
+);
+__arm_new( "za" ) __arm_locally_streaming void bli_sgemmtrsm_u_armsme_int_2SVLx2SVL
+(
+    dim_t m, dim_t n, dim_t k,
+    const float* alpha,
+    const float* a10, const float* a11,
+    const float* b01, const float* b11,
+    float* c11, inc_t rs_c, inc_t cs_c,
+    const auxinfo_t* data,
+    const cntx_t* cntx
+);
