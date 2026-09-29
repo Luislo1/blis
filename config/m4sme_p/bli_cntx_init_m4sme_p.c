@@ -85,6 +85,10 @@ void bli_cntx_init_m4sme_p( cntx_t* cntx )
 	  // level-3
 	  BLIS_GEMM_UKR_ROW_PREF, BLIS_FLOAT,  FALSE,
 	  BLIS_GEMM_UKR_ROW_PREF, BLIS_DOUBLE, FALSE,
+	//   //   gemmtrsm_l
+	//   BLIS_GEMMTRSM_L_UKR_ROW_PREF, BLIS_FLOAT,    TRUE,
+	//   // gemmtrsm_u
+	//   BLIS_GEMMTRSM_U_UKR_ROW_PREF, BLIS_FLOAT,    TRUE,
 
 	  BLIS_VA_END
 	);
