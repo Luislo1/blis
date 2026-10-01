@@ -50,7 +50,7 @@ void bli_cntx_init_m4sme_p( cntx_t* cntx )
 
 	  // level-3
 	  BLIS_GEMM_UKR, BLIS_FLOAT,  bli_sgemm_armsme_int_2SVLx2SVL,
-	  BLIS_GEMM_UKR, BLIS_DOUBLE, bli_dgemm_armsme_int_4SVLx2SVL,
+	  BLIS_GEMM_UKR, BLIS_DOUBLE, bli_dgemm_armsme_int_2SVLx4SVL,
 	  BLIS_PACKM_KER, BLIS_FLOAT, bli_spackm_armsme_int_2SVLx2SVL,
 	  BLIS_PACKM_KER, BLIS_DOUBLE, bli_dpackm_armsme_int_4SVLx2SVL,
 
@@ -70,9 +70,19 @@ void bli_cntx_init_m4sme_p( cntx_t* cntx )
 	//   BLIS_GEMMSUP_CRC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_fallback,
 	  BLIS_GEMMSUP_CCC_UKR, BLIS_FLOAT, bli_sgemm_armsme_sup_ccc_2SVLx2SVL,
 
+	  BLIS_GEMMSUP_RRC_UKR, BLIS_DOUBLE, bli_dgemm_armsme_sup_double_pack_2SVLx4SVL,
+	  BLIS_GEMMSUP_RCC_UKR, BLIS_DOUBLE, bli_dgemm_armsme_sup_crr_2SVLx4SVL,
+	  BLIS_GEMMSUP_CRR_UKR, BLIS_DOUBLE, bli_dgemm_armsme_sup_crr_2SVLx4SVL,
+	  BLIS_GEMMSUP_CRC_UKR, BLIS_DOUBLE, bli_dgemm_armsme_sup_double_pack_2SVLx4SVL,
+	  BLIS_GEMMSUP_RCR_UKR, BLIS_DOUBLE, bli_dgemm_armsme_sup_2SVLx4SVL,
+	  BLIS_GEMMSUP_CCR_UKR, BLIS_DOUBLE, bli_dgemm_armsme_sup_2SVLx4SVL,
+	  BLIS_GEMMSUP_RRR_UKR, BLIS_DOUBLE, bli_dgemm_armsme_sup_ccc_2SVLx4SVL,
+	  BLIS_GEMMSUP_CCC_UKR, BLIS_DOUBLE, bli_dgemm_armsme_sup_ccc_2SVLx4SVL,
 
 	  BLIS_GEMMTRSM_L_UKR, BLIS_FLOAT,    bli_sgemmtrsm_l_armsme_int_2SVLx2SVL,
 	  BLIS_GEMMTRSM_U_UKR, BLIS_FLOAT,    bli_sgemmtrsm_u_armsme_int_2SVLx2SVL,
+	  BLIS_GEMMTRSM_L_UKR, BLIS_DOUBLE,    bli_dgemmtrsm_l_armsme_int_2SVLx4SVL,
+	  BLIS_GEMMTRSM_U_UKR, BLIS_DOUBLE,    bli_dgemmtrsm_u_armsme_int_2SVLx4SVL,
 
 	  BLIS_VA_END
 	);
@@ -95,22 +105,22 @@ void bli_cntx_init_m4sme_p( cntx_t* cntx )
 
 	// Initialize level-3 blocksize objects with architecture-specific values.
 	//                                           s      d      c      z
-	bli_blksz_init_easy( &blkszs[ BLIS_MR ],    32,    32,    -1,    -1 );
-	bli_blksz_init_easy( &blkszs[ BLIS_NR ],    32,    16,    -1,    -1 );
+	bli_blksz_init_easy( &blkszs[ BLIS_MR ],    32,    16,    -1,    -1 );
+	bli_blksz_init_easy( &blkszs[ BLIS_NR ],    32,    32,    -1,    -1 );
 	bli_blksz_init_easy( &blkszs[ BLIS_MC ],    768,   608,   -1,    -1 );
 	bli_blksz_init_easy( &blkszs[ BLIS_KC ],    3648,  2240,  -1,    -1 );
 	bli_blksz_init_easy( &blkszs[ BLIS_NC ],    10240, 3072,  -1,    -1 );
 
 
-	bli_blksz_init_easy( &blkszs[ BLIS_MT ],    1504,   -1,   -1,    -1 );
-	bli_blksz_init_easy( &blkszs[ BLIS_NT ],    1504,   -1,   -1,    -1 );
+	bli_blksz_init_easy( &blkszs[ BLIS_MT ],    1504,   1024,   -1,    -1 );
+	bli_blksz_init_easy( &blkszs[ BLIS_NT ],    1504,   1024,   -1,    -1 );
 	bli_blksz_init_easy( &blkszs[ BLIS_KT ],    1,   -1,   -1,    -1 );
 
-	bli_blksz_init_easy( &blkszs[ BLIS_MR_SUP ],  32,    32,    -1,    -1 );
-	bli_blksz_init_easy( &blkszs[ BLIS_NR_SUP ],  32,    16,    -1,    -1 );
-	bli_blksz_init_easy( &blkszs[ BLIS_MC_SUP ],  32,    32,    -1,    -1 );
+	bli_blksz_init_easy( &blkszs[ BLIS_MR_SUP ],  32,    16,    -1,    -1 );
+	bli_blksz_init_easy( &blkszs[ BLIS_NR_SUP ],  32,    32,    -1,    -1 );
+	bli_blksz_init_easy( &blkszs[ BLIS_MC_SUP ],  32,    16,    -1,    -1 );
 	bli_blksz_init_easy( &blkszs[ BLIS_KC_SUP ],  2080,  1504,  -1,    -1 );
-	bli_blksz_init_easy( &blkszs[ BLIS_NC_SUP ],  32,    16,    -1,    -1 );
+	bli_blksz_init_easy( &blkszs[ BLIS_NC_SUP ],  32,    32,    -1,    -1 );
 #endif
 
 #if 0 // CONFIG_2

@@ -32,6 +32,23 @@
 
 */
 
+// void bli_spackm_armsme_int_2SVLx2SVL
+//     (
+//         conj_t conja,
+//         pack_t schema,
+//         dim_t cdim_,
+//         dim_t cdim_max,
+//         dim_t cdim_bcast,
+//         dim_t n_,
+//         dim_t n_max_,
+//         const void *kappa,
+//         const void *a, inc_t inca_, inc_t lda_,
+//         void *p, inc_t ldp_,
+//         const void *params,
+//         const cntx_t * cntx
+//     ) __arm_streaming ;
+
+
 PACKM_KER_PROT( float,    s, packm_armsme_int_2SVLx2SVL )
 PACKM_KER_PROT( double,   d, packm_armsme_int_4SVLx2SVL )
 
@@ -151,7 +168,38 @@ __arm_new( "za" ) __arm_locally_streaming void bli_dgemm_armsme_int_2SVLx4SVL
        const auxinfo_t* data,
        const cntx_t*    cntx
      );
+     __arm_new( "za" ) __arm_locally_streaming void bli_dgemm_armsme_sup_2SVLx4SVL
+     (
+             conj_t     conja,
+             conj_t     conjb,
+             dim_t      m,
+             dim_t      n,
+             dim_t      k,
+       const void*      alpha,
+       const void*      a, inc_t rs_a, inc_t cs_a,
+       const void*      b, inc_t rs_b, inc_t cs_b,
+       const void*      beta,
+             void*      c, inc_t rs_c, inc_t cs_c,
+       const auxinfo_t* data,
+       const cntx_t*    cntx
+     );
+
      __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_sup_ccc_2SVLx2SVL
+     (
+             conj_t     conja,
+             conj_t     conjb,
+             dim_t      m,
+             dim_t      n,
+             dim_t      k,
+       const void*      alpha,
+       const void*      a, inc_t rs_a, inc_t cs_a,
+       const void*      b, inc_t rs_b, inc_t cs_b,
+       const void*      beta,
+             void*      c, inc_t rs_c, inc_t cs_c,
+       const auxinfo_t* data,
+       const cntx_t*    cntx
+     );
+     __arm_new( "za" ) __arm_locally_streaming void bli_dgemm_armsme_sup_ccc_2SVLx4SVL
      (
              conj_t     conja,
              conj_t     conjb,
@@ -181,8 +229,39 @@ __arm_new( "za" ) __arm_locally_streaming void bli_dgemm_armsme_int_2SVLx4SVL
        const auxinfo_t* data,
        const cntx_t*    cntx
      );
+     __arm_new( "za" ) __arm_locally_streaming void bli_dgemm_armsme_sup_double_pack_2SVLx4SVL
+     (
+             conj_t     conja,
+             conj_t     conjb,
+             dim_t      m,
+             dim_t      n,
+             dim_t      k,
+       const void*      alpha,
+       const void*      a, inc_t rs_a, inc_t cs_a,
+       const void*      b, inc_t rs_b, inc_t cs_b,
+       const void*      beta,
+             void*      c, inc_t rs_c, inc_t cs_c,
+       const auxinfo_t* data,
+       const cntx_t*    cntx
+     );
 
          __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_sup_crr_2SVLx2SVL
+     (
+             conj_t     conja,
+             conj_t     conjb,
+             dim_t      m,
+             dim_t      n,
+             dim_t      k,
+       const void*      alpha,
+       const void*      a, inc_t rs_a, inc_t cs_a,
+       const void*      b, inc_t rs_b, inc_t cs_b,
+       const void*      beta,
+             void*      c, inc_t rs_c, inc_t cs_c,
+       const auxinfo_t* data,
+       const cntx_t*    cntx
+     ); 
+
+__arm_new( "za" ) __arm_locally_streaming void bli_dgemm_armsme_sup_crr_2SVLx4SVL
      (
              conj_t     conja,
              conj_t     conjb,
@@ -242,3 +321,29 @@ __arm_new( "za" ) __arm_locally_streaming void bli_sgemmtrsm_u_armsme_int_2SVLx2
     const auxinfo_t* data,
     const cntx_t* cntx
 );
+
+__arm_new( "za" ) __arm_locally_streaming void bli_dgemmtrsm_l_armsme_int_2SVLx4SVL
+	(
+			  dim_t      m,
+			  dim_t      n,
+			  dim_t      k,
+		const double*    alpha,
+		const double*    a10, const double* a11,
+		const double*    b01, const double* b11,
+			  double*    c11, inc_t rs_c, inc_t cs_c,
+		const auxinfo_t* data,
+		const cntx_t*    cntx
+	);
+
+__arm_new( "za" ) __arm_locally_streaming void bli_dgemmtrsm_u_armsme_int_2SVLx4SVL
+	(
+			  dim_t      m,
+			  dim_t      n,
+			  dim_t      k,
+		const double*    alpha,
+		const double*    a10, const double* a11,
+		const double*    b01, const double* b11,
+			  double*    c11, inc_t rs_c, inc_t cs_c,
+		const auxinfo_t* data,
+		const cntx_t*    cntx
+	); 
