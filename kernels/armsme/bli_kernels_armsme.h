@@ -300,7 +300,13 @@ __arm_new( "za" ) __arm_locally_streaming void bli_dgemm_armsme_sup_crr_2SVLx4SV
     void* beta, void* c, inc_t rs_c, inc_t cs_c,
     auxinfo_t* data, cntx_t* cntx
 );
-
+void bli_dgemm_armsme_sup_fallback(
+    conj_t conja, conj_t conjb, dim_t m, dim_t n, dim_t k,
+    void* alpha, void* a, inc_t rs_a, inc_t cs_a,
+    void* b, inc_t rs_b, inc_t cs_b,
+    void* beta, void* c, inc_t rs_c, inc_t cs_c,
+    auxinfo_t* data, cntx_t* cntx
+);
 __arm_new( "za" ) __arm_locally_streaming void bli_sgemmtrsm_l_armsme_int_2SVLx2SVL
 (
     dim_t m, dim_t n, dim_t k,
