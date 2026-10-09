@@ -255,90 +255,280 @@ __arm_new( "za" ) __arm_locally_streaming void bli_sgemm_armsme_sup_2SVLx2SVL
     else 
     {
         // EDGE PATH
+        uint64_t m_top = (m > SVL) ? SVL : m;
+        uint64_t m_bot = (m > SVL) ? m - SVL : 0;
+
+        float *c_ptr_top = c_;
+        float *c_ptr_bot = c_ + SVL * rs_c;
+
         if (beta_ == 0) {
-            for ( uint64_t trow = 0; trow < SVL; trow += 1 )
-            {
-                bool valid_row_0 = (trow < m);
-                bool valid_row_1 = (trow + SVL < m);
+            for ( uint64_t trow = 0; trow < SVL; trow += 4 ) {
 
-                // Top Half (Tiles 0 & 2)
-                if (valid_row_0) 
-                {
-                    svfloat32_t z0 = svread_hor_za32_m( svundef_f32(), pg_N0, 0, trow );
-                    svfloat32_t z2 = svread_hor_za32_m( svundef_f32(), pg_N1, 2, trow );
+                if (trow + 3 < m_bot) {
+                    // CASE 1: All 4 rows of Top and Bottom are fully valid
+                    svfloat32x4_t zq0 = svread_hor_za32_f32_vg4( 0, trow );
+                    svfloat32x4_t zq1 = svread_hor_za32_f32_vg4( 1, trow );
+                    svfloat32x4_t zq2 = svread_hor_za32_f32_vg4( 2, trow );
+                    svfloat32x4_t zq3 = svread_hor_za32_f32_vg4( 3, trow );
 
-                    z0 = svmul_n_f32_z( pg_N0, z0, alpha_ );
-                    z2 = svmul_n_f32_z( pg_N1, z2, alpha_ );
+                    // Row 0
+                    svst1_f32( pg_N0, c_ptr_top + 0 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq0, 0), alpha_ ) );
+                    svst1_f32( pg_N1, c_ptr_top + SVL + 0 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq2, 0), alpha_ ) );
+                    svst1_f32( pg_N0, c_ptr_bot + 0 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq1, 0), alpha_ ) );
+                    svst1_f32( pg_N1, c_ptr_bot + SVL + 0 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq3, 0), alpha_ ) );
 
-                    float *c_ptr_0 = c_ + trow * rs_c;
-                    float *c_ptr_2 = c_ + SVL + trow * rs_c;
+                    // Row 1
+                    svst1_f32( pg_N0, c_ptr_top + 1 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq0, 1), alpha_ ) );
+                    svst1_f32( pg_N1, c_ptr_top + SVL + 1 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq2, 1), alpha_ ) );
+                    svst1_f32( pg_N0, c_ptr_bot + 1 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq1, 1), alpha_ ) );
+                    svst1_f32( pg_N1, c_ptr_bot + SVL + 1 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq3, 1), alpha_ ) );
 
-                    svst1_f32( pg_N0, c_ptr_0, z0 );
-                    svst1_f32( pg_N1, c_ptr_2, z2 );
+                    // Row 2
+                    svst1_f32( pg_N0, c_ptr_top + 2 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq0, 2), alpha_ ) );
+                    svst1_f32( pg_N1, c_ptr_top + SVL + 2 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq2, 2), alpha_ ) );
+                    svst1_f32( pg_N0, c_ptr_bot + 2 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq1, 2), alpha_ ) );
+                    svst1_f32( pg_N1, c_ptr_bot + SVL + 2 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq3, 2), alpha_ ) );
+
+                    // Row 3
+                    svst1_f32( pg_N0, c_ptr_top + 3 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq0, 3), alpha_ ) );
+                    svst1_f32( pg_N1, c_ptr_top + SVL + 3 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq2, 3), alpha_ ) );
+                    svst1_f32( pg_N0, c_ptr_bot + 3 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq1, 3), alpha_ ) );
+                    svst1_f32( pg_N1, c_ptr_bot + SVL + 3 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq3, 3), alpha_ ) );
+                }
+                else if (trow + 3 < m_top) {
+                    // CASE 2: All 4 rows of Top are valid, Bottom is a remainder (Happens at most once per edge pass)
+                    svfloat32x4_t zq0 = svread_hor_za32_f32_vg4( 0, trow );
+                    svfloat32x4_t zq2 = svread_hor_za32_f32_vg4( 2, trow );
+
+                    svst1_f32( pg_N0, c_ptr_top + 0 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq0, 0), alpha_ ) );
+                    svst1_f32( pg_N1, c_ptr_top + SVL + 0 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq2, 0), alpha_ ) );
+                    
+                    svst1_f32( pg_N0, c_ptr_top + 1 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq0, 1), alpha_ ) );
+                    svst1_f32( pg_N1, c_ptr_top + SVL + 1 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq2, 1), alpha_ ) );
+
+                    svst1_f32( pg_N0, c_ptr_top + 2 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq0, 2), alpha_ ) );
+                    svst1_f32( pg_N1, c_ptr_top + SVL + 2 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq2, 2), alpha_ ) );
+
+                    svst1_f32( pg_N0, c_ptr_top + 3 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq0, 3), alpha_ ) );
+                    svst1_f32( pg_N1, c_ptr_top + SVL + 3 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq2, 3), alpha_ ) );
+
+                    if (trow < m_bot) {
+                        svfloat32x4_t zq1 = svread_hor_za32_f32_vg4( 1, trow );
+                        svfloat32x4_t zq3 = svread_hor_za32_f32_vg4( 3, trow );
+                        
+                        if (trow + 0 < m_bot) {
+                            svst1_f32( pg_N0, c_ptr_bot + 0 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq1, 0), alpha_ ) );
+                            svst1_f32( pg_N1, c_ptr_bot + SVL + 0 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq3, 0), alpha_ ) );
+                        }
+                        if (trow + 1 < m_bot) {
+                            svst1_f32( pg_N0, c_ptr_bot + 1 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq1, 1), alpha_ ) );
+                            svst1_f32( pg_N1, c_ptr_bot + SVL + 1 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq3, 1), alpha_ ) );
+                        }
+                        if (trow + 2 < m_bot) {
+                            svst1_f32( pg_N0, c_ptr_bot + 2 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq1, 2), alpha_ ) );
+                            svst1_f32( pg_N1, c_ptr_bot + SVL + 2 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq3, 2), alpha_ ) );
+                        }
+                    }
+                }
+                else {
+                    // CASE 3: Top is a remainder, Bottom is completely invalid (Happens at most once per edge pass)
+                    svfloat32x4_t zq0 = svread_hor_za32_f32_vg4( 0, trow );
+                    svfloat32x4_t zq2 = svread_hor_za32_f32_vg4( 2, trow );
+
+                    if (trow + 0 < m_top) {
+                        svst1_f32( pg_N0, c_ptr_top + 0 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq0, 0), alpha_ ) );
+                        svst1_f32( pg_N1, c_ptr_top + SVL + 0 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq2, 0), alpha_ ) );
+                    }
+                    if (trow + 1 < m_top) {
+                        svst1_f32( pg_N0, c_ptr_top + 1 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq0, 1), alpha_ ) );
+                        svst1_f32( pg_N1, c_ptr_top + SVL + 1 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq2, 1), alpha_ ) );
+                    }
+                    if (trow + 2 < m_top) {
+                        svst1_f32( pg_N0, c_ptr_top + 2 * rs_c, svmul_n_f32_x( pg_N0, svget4(zq0, 2), alpha_ ) );
+                        svst1_f32( pg_N1, c_ptr_top + SVL + 2 * rs_c, svmul_n_f32_x( pg_N1, svget4(zq2, 2), alpha_ ) );
+                    }
                 }
 
-                // Bottom Half (Tiles 1 & 3)
-                if (valid_row_1) 
-                {
-                    svfloat32_t z1 = svread_hor_za32_m( svundef_f32(), pg_N0, 1, trow );
-                    svfloat32_t z3 = svread_hor_za32_m( svundef_f32(), pg_N1, 3, trow );
-
-                    z1 = svmul_n_f32_z( pg_N0, z1, alpha_ );
-                    z3 = svmul_n_f32_z( pg_N1, z3, alpha_ );
-
-                    float *c_ptr_1 = c_ + SVL * rs_c + trow * rs_c;
-                    float *c_ptr_3 = c_ + SVL * rs_c + SVL + trow * rs_c;
-
-                    svst1_f32( pg_N0, c_ptr_1, z1 );
-                    svst1_f32( pg_N1, c_ptr_3, z3 );
-                }
+                c_ptr_top += 4 * rs_c;
+                c_ptr_bot += 4 * rs_c;
             }
         }
         else {
-            for ( uint64_t trow = 0; trow < SVL; trow += 1 )
-            {
-                bool valid_row_0 = (trow < m);
-                bool valid_row_1 = (trow + SVL < m);
+            for ( uint64_t trow = 0; trow < SVL; trow += 4 ) {
+                if (trow + 3 < m_bot) {
+                    svfloat32x4_t zq0 = svread_hor_za32_f32_vg4( 0, trow );
+                    svfloat32x4_t zq1 = svread_hor_za32_f32_vg4( 1, trow );
+                    svfloat32x4_t zq2 = svread_hor_za32_f32_vg4( 2, trow );
+                    svfloat32x4_t zq3 = svread_hor_za32_f32_vg4( 3, trow );
 
-                // Top Half (Tiles 0 & 2)
-                if (valid_row_0) 
-                {
-                    svfloat32_t z0 = svread_hor_za32_m( svundef_f32(), pg_N0, 0, trow );
-                    svfloat32_t z2 = svread_hor_za32_m( svundef_f32(), pg_N1, 2, trow );
+                    // Row 0
+                    {
+                        svfloat32_t z0 = svmul_n_f32_x( pg_N0, svget4(zq0, 0), alpha_ );
+                        svfloat32_t z2 = svmul_n_f32_x( pg_N1, svget4(zq2, 0), alpha_ );
+                        svfloat32_t z1 = svmul_n_f32_x( pg_N0, svget4(zq1, 0), alpha_ );
+                        svfloat32_t z3 = svmul_n_f32_x( pg_N1, svget4(zq3, 0), alpha_ );
+                        
+                        z0 = svmla_n_f32_x( pg_N0, z0, svld1_f32(pg_N0, c_ptr_top + 0 * rs_c), beta_ );
+                        z2 = svmla_n_f32_x( pg_N1, z2, svld1_f32(pg_N1, c_ptr_top + SVL + 0 * rs_c), beta_ );
+                        z1 = svmla_n_f32_x( pg_N0, z1, svld1_f32(pg_N0, c_ptr_bot + 0 * rs_c), beta_ );
+                        z3 = svmla_n_f32_x( pg_N1, z3, svld1_f32(pg_N1, c_ptr_bot + SVL + 0 * rs_c), beta_ );
 
-                    z0 = svmul_n_f32_z( pg_N0, z0, alpha_ );
-                    z2 = svmul_n_f32_z( pg_N1, z2, alpha_ );
+                        svst1_f32( pg_N0, c_ptr_top + 0 * rs_c, z0 );
+                        svst1_f32( pg_N1, c_ptr_top + SVL + 0 * rs_c, z2 );
+                        svst1_f32( pg_N0, c_ptr_bot + 0 * rs_c, z1 );
+                        svst1_f32( pg_N1, c_ptr_bot + SVL + 0 * rs_c, z3 );
+                    }
+                    // Row 1
+                    {
+                        svfloat32_t z0 = svmul_n_f32_x( pg_N0, svget4(zq0, 1), alpha_ );
+                        svfloat32_t z2 = svmul_n_f32_x( pg_N1, svget4(zq2, 1), alpha_ );
+                        svfloat32_t z1 = svmul_n_f32_x( pg_N0, svget4(zq1, 1), alpha_ );
+                        svfloat32_t z3 = svmul_n_f32_x( pg_N1, svget4(zq3, 1), alpha_ );
+                        
+                        z0 = svmla_n_f32_x( pg_N0, z0, svld1_f32(pg_N0, c_ptr_top + 1 * rs_c), beta_ );
+                        z2 = svmla_n_f32_x( pg_N1, z2, svld1_f32(pg_N1, c_ptr_top + SVL + 1 * rs_c), beta_ );
+                        z1 = svmla_n_f32_x( pg_N0, z1, svld1_f32(pg_N0, c_ptr_bot + 1 * rs_c), beta_ );
+                        z3 = svmla_n_f32_x( pg_N1, z3, svld1_f32(pg_N1, c_ptr_bot + SVL + 1 * rs_c), beta_ );
 
-                    float *c_ptr_0 = c_ + trow * rs_c;
-                    float *c_ptr_2 = c_ + SVL + trow * rs_c;
+                        svst1_f32( pg_N0, c_ptr_top + 1 * rs_c, z0 );
+                        svst1_f32( pg_N1, c_ptr_top + SVL + 1 * rs_c, z2 );
+                        svst1_f32( pg_N0, c_ptr_bot + 1 * rs_c, z1 );
+                        svst1_f32( pg_N1, c_ptr_bot + SVL + 1 * rs_c, z3 );
+                    }
+                    // Row 2
+                    {
+                        svfloat32_t z0 = svmul_n_f32_x( pg_N0, svget4(zq0, 2), alpha_ );
+                        svfloat32_t z2 = svmul_n_f32_x( pg_N1, svget4(zq2, 2), alpha_ );
+                        svfloat32_t z1 = svmul_n_f32_x( pg_N0, svget4(zq1, 2), alpha_ );
+                        svfloat32_t z3 = svmul_n_f32_x( pg_N1, svget4(zq3, 2), alpha_ );
+                        
+                        z0 = svmla_n_f32_x( pg_N0, z0, svld1_f32(pg_N0, c_ptr_top + 2 * rs_c), beta_ );
+                        z2 = svmla_n_f32_x( pg_N1, z2, svld1_f32(pg_N1, c_ptr_top + SVL + 2 * rs_c), beta_ );
+                        z1 = svmla_n_f32_x( pg_N0, z1, svld1_f32(pg_N0, c_ptr_bot + 2 * rs_c), beta_ );
+                        z3 = svmla_n_f32_x( pg_N1, z3, svld1_f32(pg_N1, c_ptr_bot + SVL + 2 * rs_c), beta_ );
 
-                    z0 = svmla_n_f32_m( pg_N0, z0, svld1_f32(pg_N0, c_ptr_0), beta_ );
-                    z2 = svmla_n_f32_m( pg_N1, z2, svld1_f32(pg_N1, c_ptr_2), beta_ );
+                        svst1_f32( pg_N0, c_ptr_top + 2 * rs_c, z0 );
+                        svst1_f32( pg_N1, c_ptr_top + SVL + 2 * rs_c, z2 );
+                        svst1_f32( pg_N0, c_ptr_bot + 2 * rs_c, z1 );
+                        svst1_f32( pg_N1, c_ptr_bot + SVL + 2 * rs_c, z3 );
+                    }
+                    // Row 3
+                    {
+                        svfloat32_t z0 = svmul_n_f32_x( pg_N0, svget4(zq0, 3), alpha_ );
+                        svfloat32_t z2 = svmul_n_f32_x( pg_N1, svget4(zq2, 3), alpha_ );
+                        svfloat32_t z1 = svmul_n_f32_x( pg_N0, svget4(zq1, 3), alpha_ );
+                        svfloat32_t z3 = svmul_n_f32_x( pg_N1, svget4(zq3, 3), alpha_ );
+                        
+                        z0 = svmla_n_f32_x( pg_N0, z0, svld1_f32(pg_N0, c_ptr_top + 3 * rs_c), beta_ );
+                        z2 = svmla_n_f32_x( pg_N1, z2, svld1_f32(pg_N1, c_ptr_top + SVL + 3 * rs_c), beta_ );
+                        z1 = svmla_n_f32_x( pg_N0, z1, svld1_f32(pg_N0, c_ptr_bot + 3 * rs_c), beta_ );
+                        z3 = svmla_n_f32_x( pg_N1, z3, svld1_f32(pg_N1, c_ptr_bot + SVL + 3 * rs_c), beta_ );
 
-                    svst1_f32( pg_N0, c_ptr_0, z0 );
-                    svst1_f32( pg_N1, c_ptr_2, z2 );
+                        svst1_f32( pg_N0, c_ptr_top + 3 * rs_c, z0 );
+                        svst1_f32( pg_N1, c_ptr_top + SVL + 3 * rs_c, z2 );
+                        svst1_f32( pg_N0, c_ptr_bot + 3 * rs_c, z1 );
+                        svst1_f32( pg_N1, c_ptr_bot + SVL + 3 * rs_c, z3 );
+                    }
                 }
+                else if (trow + 3 < m_top) {
+                    svfloat32x4_t zq0 = svread_hor_za32_f32_vg4( 0, trow );
+                    svfloat32x4_t zq2 = svread_hor_za32_f32_vg4( 2, trow );
 
-                // Bottom Half (Tiles 1 & 3)
-                if (valid_row_1) 
-                {
-                    svfloat32_t z1 = svread_hor_za32_m( svundef_f32(), pg_N0, 1, trow );
-                    svfloat32_t z3 = svread_hor_za32_m( svundef_f32(), pg_N1, 3, trow );
+                    {
+                        svfloat32_t z0 = svmul_n_f32_x( pg_N0, svget4(zq0, 0), alpha_ );
+                        svfloat32_t z2 = svmul_n_f32_x( pg_N1, svget4(zq2, 0), alpha_ );
+                        z0 = svmla_n_f32_x( pg_N0, z0, svld1_f32(pg_N0, c_ptr_top + 0 * rs_c), beta_ );
+                        z2 = svmla_n_f32_x( pg_N1, z2, svld1_f32(pg_N1, c_ptr_top + SVL + 0 * rs_c), beta_ );
+                        svst1_f32( pg_N0, c_ptr_top + 0 * rs_c, z0 );
+                        svst1_f32( pg_N1, c_ptr_top + SVL + 0 * rs_c, z2 );
+                    }
+                    {
+                        svfloat32_t z0 = svmul_n_f32_x( pg_N0, svget4(zq0, 1), alpha_ );
+                        svfloat32_t z2 = svmul_n_f32_x( pg_N1, svget4(zq2, 1), alpha_ );
+                        z0 = svmla_n_f32_x( pg_N0, z0, svld1_f32(pg_N0, c_ptr_top + 1 * rs_c), beta_ );
+                        z2 = svmla_n_f32_x( pg_N1, z2, svld1_f32(pg_N1, c_ptr_top + SVL + 1 * rs_c), beta_ );
+                        svst1_f32( pg_N0, c_ptr_top + 1 * rs_c, z0 );
+                        svst1_f32( pg_N1, c_ptr_top + SVL + 1 * rs_c, z2 );
+                    }
+                    {
+                        svfloat32_t z0 = svmul_n_f32_x( pg_N0, svget4(zq0, 2), alpha_ );
+                        svfloat32_t z2 = svmul_n_f32_x( pg_N1, svget4(zq2, 2), alpha_ );
+                        z0 = svmla_n_f32_x( pg_N0, z0, svld1_f32(pg_N0, c_ptr_top + 2 * rs_c), beta_ );
+                        z2 = svmla_n_f32_x( pg_N1, z2, svld1_f32(pg_N1, c_ptr_top + SVL + 2 * rs_c), beta_ );
+                        svst1_f32( pg_N0, c_ptr_top + 2 * rs_c, z0 );
+                        svst1_f32( pg_N1, c_ptr_top + SVL + 2 * rs_c, z2 );
+                    }
+                    {
+                        svfloat32_t z0 = svmul_n_f32_x( pg_N0, svget4(zq0, 3), alpha_ );
+                        svfloat32_t z2 = svmul_n_f32_x( pg_N1, svget4(zq2, 3), alpha_ );
+                        z0 = svmla_n_f32_x( pg_N0, z0, svld1_f32(pg_N0, c_ptr_top + 3 * rs_c), beta_ );
+                        z2 = svmla_n_f32_x( pg_N1, z2, svld1_f32(pg_N1, c_ptr_top + SVL + 3 * rs_c), beta_ );
+                        svst1_f32( pg_N0, c_ptr_top + 3 * rs_c, z0 );
+                        svst1_f32( pg_N1, c_ptr_top + SVL + 3 * rs_c, z2 );
+                    }
 
-                    z1 = svmul_n_f32_z( pg_N0, z1, alpha_ );
-                    z3 = svmul_n_f32_z( pg_N1, z3, alpha_ );
-
-                    float *c_ptr_1 = c_ + SVL * rs_c + trow * rs_c;
-                    float *c_ptr_3 = c_ + SVL * rs_c + SVL + trow * rs_c;
-
-                    z1 = svmla_n_f32_m( pg_N0, z1, svld1_f32(pg_N0, c_ptr_1), beta_ );
-                    z3 = svmla_n_f32_m( pg_N1, z3, svld1_f32(pg_N1, c_ptr_3), beta_ );
-
-                    svst1_f32( pg_N0, c_ptr_1, z1 );
-                    svst1_f32( pg_N1, c_ptr_3, z3 );
+                    if (trow < m_bot) {
+                        svfloat32x4_t zq1 = svread_hor_za32_f32_vg4( 1, trow );
+                        svfloat32x4_t zq3 = svread_hor_za32_f32_vg4( 3, trow );
+                        
+                        if (trow + 0 < m_bot) {
+                            svfloat32_t z1 = svmul_n_f32_x( pg_N0, svget4(zq1, 0), alpha_ );
+                            svfloat32_t z3 = svmul_n_f32_x( pg_N1, svget4(zq3, 0), alpha_ );
+                            z1 = svmla_n_f32_x( pg_N0, z1, svld1_f32(pg_N0, c_ptr_bot + 0 * rs_c), beta_ );
+                            z3 = svmla_n_f32_x( pg_N1, z3, svld1_f32(pg_N1, c_ptr_bot + SVL + 0 * rs_c), beta_ );
+                            svst1_f32( pg_N0, c_ptr_bot + 0 * rs_c, z1 );
+                            svst1_f32( pg_N1, c_ptr_bot + SVL + 0 * rs_c, z3 );
+                        }
+                        if (trow + 1 < m_bot) {
+                            svfloat32_t z1 = svmul_n_f32_x( pg_N0, svget4(zq1, 1), alpha_ );
+                            svfloat32_t z3 = svmul_n_f32_x( pg_N1, svget4(zq3, 1), alpha_ );
+                            z1 = svmla_n_f32_x( pg_N0, z1, svld1_f32(pg_N0, c_ptr_bot + 1 * rs_c), beta_ );
+                            z3 = svmla_n_f32_x( pg_N1, z3, svld1_f32(pg_N1, c_ptr_bot + SVL + 1 * rs_c), beta_ );
+                            svst1_f32( pg_N0, c_ptr_bot + 1 * rs_c, z1 );
+                            svst1_f32( pg_N1, c_ptr_bot + SVL + 1 * rs_c, z3 );
+                        }
+                        if (trow + 2 < m_bot) {
+                            svfloat32_t z1 = svmul_n_f32_x( pg_N0, svget4(zq1, 2), alpha_ );
+                            svfloat32_t z3 = svmul_n_f32_x( pg_N1, svget4(zq3, 2), alpha_ );
+                            z1 = svmla_n_f32_x( pg_N0, z1, svld1_f32(pg_N0, c_ptr_bot + 2 * rs_c), beta_ );
+                            z3 = svmla_n_f32_x( pg_N1, z3, svld1_f32(pg_N1, c_ptr_bot + SVL + 2 * rs_c), beta_ );
+                            svst1_f32( pg_N0, c_ptr_bot + 2 * rs_c, z1 );
+                            svst1_f32( pg_N1, c_ptr_bot + SVL + 2 * rs_c, z3 );
+                        }
+                    }
                 }
+                else {
+                    svfloat32x4_t zq0 = svread_hor_za32_f32_vg4( 0, trow );
+                    svfloat32x4_t zq2 = svread_hor_za32_f32_vg4( 2, trow );
+
+                    if (trow + 0 < m_top) {
+                        svfloat32_t z0 = svmul_n_f32_x( pg_N0, svget4(zq0, 0), alpha_ );
+                        svfloat32_t z2 = svmul_n_f32_x( pg_N1, svget4(zq2, 0), alpha_ );
+                        z0 = svmla_n_f32_x( pg_N0, z0, svld1_f32(pg_N0, c_ptr_top + 0 * rs_c), beta_ );
+                        z2 = svmla_n_f32_x( pg_N1, z2, svld1_f32(pg_N1, c_ptr_top + SVL + 0 * rs_c), beta_ );
+                        svst1_f32( pg_N0, c_ptr_top + 0 * rs_c, z0 );
+                        svst1_f32( pg_N1, c_ptr_top + SVL + 0 * rs_c, z2 );
+                    }
+                    if (trow + 1 < m_top) {
+                        svfloat32_t z0 = svmul_n_f32_x( pg_N0, svget4(zq0, 1), alpha_ );
+                        svfloat32_t z2 = svmul_n_f32_x( pg_N1, svget4(zq2, 1), alpha_ );
+                        z0 = svmla_n_f32_x( pg_N0, z0, svld1_f32(pg_N0, c_ptr_top + 1 * rs_c), beta_ );
+                        z2 = svmla_n_f32_x( pg_N1, z2, svld1_f32(pg_N1, c_ptr_top + SVL + 1 * rs_c), beta_ );
+                        svst1_f32( pg_N0, c_ptr_top + 1 * rs_c, z0 );
+                        svst1_f32( pg_N1, c_ptr_top + SVL + 1 * rs_c, z2 );
+                    }
+                    if (trow + 2 < m_top) {
+                        svfloat32_t z0 = svmul_n_f32_x( pg_N0, svget4(zq0, 2), alpha_ );
+                        svfloat32_t z2 = svmul_n_f32_x( pg_N1, svget4(zq2, 2), alpha_ );
+                        z0 = svmla_n_f32_x( pg_N0, z0, svld1_f32(pg_N0, c_ptr_top + 2 * rs_c), beta_ );
+                        z2 = svmla_n_f32_x( pg_N1, z2, svld1_f32(pg_N1, c_ptr_top + SVL + 2 * rs_c), beta_ );
+                        svst1_f32( pg_N0, c_ptr_top + 2 * rs_c, z0 );
+                        svst1_f32( pg_N1, c_ptr_top + SVL + 2 * rs_c, z2 );
+                    }
+                }
+                c_ptr_top += 4 * rs_c;
+                c_ptr_bot += 4 * rs_c;
             }
         }
-
     }
 }
